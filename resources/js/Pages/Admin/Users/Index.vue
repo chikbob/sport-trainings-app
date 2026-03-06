@@ -2,9 +2,9 @@
     <AdminLayout>
         <div class="page">
             <header class="page__header">
-                <h2>Користувачі</h2>
+                <h2>{{ t('admin.users.title') }}</h2>
                 <Link :href="route('admin.users.create')" class="btn btn-primary">
-                    + Створити користувача
+                    + {{ t('admin.users.create') }}
                 </Link>
             </header>
 
@@ -12,25 +12,25 @@
                 <input
                     v-model="search"
                     type="text"
-                    placeholder="Пошук..."
+                    :placeholder="t('admin.users.search')"
                     class="input"
                 />
                 <select v-model="roleFilter" class="input">
-                    <option value="">Всі ролі</option>
-                    <option value="user">User</option>
-                    <option value="coach">Coach</option>
-                    <option value="admin">Admin</option>
+                    <option value="">{{ t('admin.users.rolesAll') }}</option>
+                    <option value="user">{{ t('admin.roles.user') }}</option>
+                    <option value="coach">{{ t('admin.roles.coach') }}</option>
+                    <option value="admin">{{ t('admin.roles.admin') }}</option>
                 </select>
             </div>
 
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Ім’я</th>
-                    <th>Email</th>
-                    <th>Роль</th>
-                    <th>Дії</th>
+                    <th>{{ t('admin.common.id') }}</th>
+                    <th>{{ t('admin.users.name') }}</th>
+                    <th>{{ t('admin.forms.email') }}</th>
+                    <th>{{ t('admin.users.role') }}</th>
+                    <th>{{ t('admin.common.actions') }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -39,54 +39,27 @@
                     <td>{{ user.name }}</td>
                     <td>{{ user.email }}</td>
                     <td>
-                        <span :class="['badge', 'role-' + user.role]">{{ user.role }}</span>
+                        <span :class="['badge', 'role-' + user.role]">{{ translateRole(user.role) }}</span>
                     </td>
                     <td class="actions">
                         <Link
                             :href="route('admin.users.edit', user.id)"
                             class="btn btn-edit"
                         >
-                            Редагувати
+                            {{ t('admin.users.edit') }}
                         </Link>
                         <button class="btn btn-delete" @click="destroy(user.id)">
-                            Видалити
+                            {{ t('admin.users.delete') }}
                         </button>
                     </td>
                 </tr>
                 <tr v-if="filteredUsers.length === 0">
-                    <td colspan="5" class="no-data">Користувачі не знайдені</td>
+                    <td colspan="5" class="no-data">{{ t('admin.users.notFound') }}</td>
                 </tr>
                 </tbody>
             </table>
 
-            <!-- Пагінація -->
-            <nav class="pagination" v-if="props.users && props.users.links.length > 1">
-                <button
-                    class="page-btn"
-                    :disabled="props.users.current_page === 1"
-                    @click="changePage(props.users.current_page - 1)"
-                >
-                    ← Попередня
-                </button>
-
-                <button
-                    v-for="link in props.users.links"
-                    :key="link.label"
-                    class="page-btn"
-                    :class="{ active: link.active }"
-                    v-html="link.label"
-                    :disabled="!link.url"
-                    @click="link.url && changePage(extractPage(link.url))"
-                ></button>
-
-                <button
-                    class="page-btn"
-                    :disabled="props.users.current_page === props.users.last_page"
-                    @click="changePage(props.users.current_page + 1)"
-                >
-                    Наступна →
-                </button>
-            </nav>
+            <AdminPagination :links="props.users.links" />
         </div>
     </AdminLayout>
 </template>
@@ -96,11 +69,15 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import {computed, ref, watch} from 'vue'
 import {Link, router} from '@inertiajs/vue3'
 import {route} from 'ziggy-js'
+import AdminPagination from '@/Components/AdminPagination.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const props = defineProps({
     users: Object,
     filters: Object,
 })
+
+const { t } = useI18n()
 
 const search = ref(props.filters?.search || '')
 const roleFilter = ref(props.filters?.role || '')
@@ -124,7 +101,7 @@ const filteredUsers = computed(() =>
 )
 
 const destroy = (id) => {
-    if (confirm('Видалити користувача?')) {
+    if (confirm(t('admin.users.confirmDelete'))) {
         router.delete(route('admin.users.destroy', id))
     }
 }
@@ -146,9 +123,17 @@ watch([search, roleFilter], () => {
     changePage(1)
 })
 
-function extractPage(url) {
-    const params = new URLSearchParams(url.split('?')[1])
-    return parseInt(params.get('page'))
+function translateRole(role) {
+    switch (role) {
+        case 'admin':
+            return t('admin.roles.admin')
+        case 'coach':
+            return t('admin.roles.coach')
+        case 'user':
+            return t('admin.roles.user')
+        default:
+            return role
+    }
 }
 </script>
 

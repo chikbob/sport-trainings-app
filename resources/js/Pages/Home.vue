@@ -1,33 +1,33 @@
 <template>
     <AppLayout>
         <div class="home max-w-4xl mx-auto p-8">
-            <h1 class="home__title">Інформаційний портал спортивних секцій</h1>
+            <h1 class="home__title">{{ t('home.title') }}</h1>
             <p class="home__subtitle">
-                Переглядайте розклад, обирайте секції та реєструйтесь на участь!
+                {{ t('home.subtitle') }}
             </p>
 
             <!-- Ближайшая тренировка -->
             <div v-if="nextRegistration" class="home__card fade">
-                <h2 class="home__card-title">Моє найближче тренування</h2>
+                <h2 class="home__card-title">{{ t('home.nextTraining') }}</h2>
 
                 <div class="home__info">
-                    <div><b>Секція:</b> {{ nextRegistration.training.sport.name }}</div>
-                    <div><b>Дата:</b> {{ $formatDate(nextRegistration.training.date) }}</div>
-                    <div><b>Час:</b> {{ nextRegistration.training.time }}</div>
-                    <div><b>Місце:</b> {{ nextRegistration.training.place || "не вказано" }}</div>
+                    <div><b>{{ t('home.section') }}:</b> {{ nextRegistration.training.sport.name }}</div>
+                    <div><b>{{ t('home.date') }}:</b> {{ $formatDate(nextRegistration.training.date) }}</div>
+                    <div><b>{{ t('home.time') }}:</b> {{ nextRegistration.training.time }}</div>
+                    <div><b>{{ t('home.place') }}:</b> {{ nextRegistration.training.place || t('home.notSpecified') }}</div>
                 </div>
 
                 <a
                     :href="route('trainings.show', nextRegistration.training.id)"
                     class="home__btn"
                 >
-                    Перейти до тренування
+                    {{ t('home.goToTraining') }}
                 </a>
             </div>
 
             <!-- Последние секции -->
             <div v-else-if="latestSports?.length" class="home__sections fade">
-                <h2 class="home__card-title">Останні додані секції</h2>
+                <h2 class="home__card-title">{{ t('home.latestSports') }}</h2>
 
                 <div class="home__sections-list">
                     <div
@@ -36,10 +36,10 @@
                         class="home__section-card"
                     >
                         <h3 class="home__section-name">{{ sport.name }}</h3>
-                        <p class="home__section-desc">{{ sport.description || "Опис відсутній" }}</p>
+                        <p class="home__section-desc">{{ sport.description || t('home.noDescription') }}</p>
 
                         <a :href="route('sports.show', sport.id)" class="home__btn-small">
-                            Детальніше
+                            {{ t('home.details') }}
                         </a>
                     </div>
                 </div>
@@ -50,11 +50,14 @@
 
 <script setup>
 import AppLayout from "@/Layouts/AppLayout.vue";
+import { useI18n } from '@/i18n/useI18n'
 
 defineProps({
     nextRegistration: Object,
     latestSports: Array,
 });
+
+const { t } = useI18n()
 </script>
 
 <style lang="scss" scoped>

@@ -1,34 +1,34 @@
 <template>
     <AppLayout>
         <div class="sports-create">
-            <h2 class="sports-create__title">Додати нову секцію</h2>
+            <h2 class="sports-create__title">{{ t('sports.createTitle') }}</h2>
 
             <form @submit.prevent="submit" class="sports-create__form">
                 <input
                     v-model="form.name"
                     type="text"
-                    placeholder="Назва секції"
+                    :placeholder="t('sports.namePlaceholder')"
                     class="sports-create__input"
                 />
                 <textarea
                     v-model="form.description"
-                    placeholder="Опис"
+                    :placeholder="t('sports.descriptionPlaceholder')"
                     class="sports-create__textarea"
                 ></textarea>
                 <input
                     v-model="form.coach_name"
                     type="text"
-                    placeholder="Ім'я тренера"
+                    :placeholder="t('sports.coachPlaceholder')"
                     class="sports-create__input"
                 />
                 <input
                     v-model="form.location"
                     type="text"
-                    placeholder="Локація"
+                    :placeholder="t('sports.location')"
                     class="sports-create__input"
                 />
 
-                <button type="submit" class="sports-create__button">Зберегти</button>
+                <button type="submit" class="sports-create__button">{{ t('sports.save') }}</button>
             </form>
         </div>
     </AppLayout>
@@ -38,6 +38,7 @@
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const form = ref({
     name: '',
@@ -49,6 +50,8 @@ const form = ref({
 const submit = () => {
     router.post('/sports', form.value)
 }
+
+const { t } = useI18n()
 </script>
 
 <style lang="scss" scoped>

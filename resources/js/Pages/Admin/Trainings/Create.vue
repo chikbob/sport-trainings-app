@@ -1,13 +1,17 @@
 <template>
     <AdminLayout>
         <div class="form-page">
-            <h2>Створити тренування</h2>
+            <h2>{{ t('admin.trainings.create') }}</h2>
+
+            <div v-if="hasErrors" class="form-errors">
+                <div v-for="(msg, key) in errors" :key="key" class="form-error">{{ msg }}</div>
+            </div>
 
             <form @submit.prevent="submit" class="form">
                 <label>
-                    Секція
+                    {{ t('admin.sports.title') }}
                     <select v-model="form.sport_id" required>
-                        <option value="">Оберіть секцію</option>
+                        <option value="">{{ t('admin.sports.title') }}</option>
                         <option v-for="sport in sports" :key="sport.id" :value="sport.id">
                             {{ sport.name }}
                         </option>
@@ -15,35 +19,36 @@
                 </label>
 
                 <label>
-                    Дата
+                    {{ t('admin.forms.date') }}
                     <input v-model="form.date" type="date" required />
                 </label>
 
                 <label>
-                    Час
+                    {{ t('admin.forms.time') }}
                     <input v-model="form.time" type="time" required />
                 </label>
 
                 <label>
-                    Місце
+                    {{ t('admin.forms.place') }}
                     <input v-model="form.place" type="text" />
                 </label>
 
                 <label>
-                    Примітки
+                    {{ t('admin.forms.notes') }}
                     <textarea v-model="form.notes"></textarea>
                 </label>
 
-                <button class="btn-primary">Створити</button>
+                <button class="btn-primary">{{ t('admin.forms.create') }}</button>
             </form>
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { reactive, computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const props = defineProps({
     sports: Array
@@ -60,6 +65,11 @@ const form = reactive({
 const submit = () => {
     router.post('/admin/trainings', form)
 }
+
+const { t } = useI18n()
+const page = usePage()
+const errors = computed(() => page.props.errors || {})
+const hasErrors = computed(() => Object.keys(errors.value).length > 0)
 </script>
 
 <style scoped>
@@ -98,5 +108,19 @@ const submit = () => {
 
 .btn-primary:hover {
     background-color: #1d4ed8;
+}
+
+.form-errors {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.form-error + .form-error {
+    margin-top: 4px;
 }
 </style>

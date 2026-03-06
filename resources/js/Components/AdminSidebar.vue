@@ -1,15 +1,16 @@
 <template>
     <aside class="sidebar">
         <div class="sidebar__logo">
-            Sport Admin
+            {{ t('admin.common.logo') }}
         </div>
 
         <nav class="sidebar__nav">
-            <Link href="/admin" class="sidebar__link">Дашборд</Link>
-            <Link href="/admin/sports" class="sidebar__link">Секції</Link>
-            <Link href="/admin/trainings" class="sidebar__link">Тренування</Link>
-            <Link href="/admin/users" class="sidebar__link">Користувачі</Link>
-            <Link href="/admin/coaches" class="sidebar__link">Тренери</Link>
+            <Link href="/admin" class="sidebar__link">{{ t('admin.sidebar.dashboard') }}</Link>
+            <Link href="/admin/sports" class="sidebar__link">{{ t('admin.sidebar.sports') }}</Link>
+            <Link href="/admin/trainings" class="sidebar__link">{{ t('admin.sidebar.trainings') }}</Link>
+            <Link href="/admin/users" class="sidebar__link">{{ t('admin.sidebar.users') }}</Link>
+            <Link href="/admin/registrations" class="sidebar__link">{{ t('admin.sidebar.registrations') }}</Link>
+            <Link href="/admin/coaches" class="sidebar__link">{{ t('admin.sidebar.coaches') }}</Link>
         </nav>
 
         <div class="sidebar__footer">
@@ -17,7 +18,7 @@
                 class="sidebar__back"
                 @click="logout"
             >
-                ← Повернутися на сайт
+                ← {{ t('admin.header.back') }}
             </button>
         </div>
     </aside>
@@ -25,6 +26,9 @@
 
 <script setup>
 import { Link, router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n/useI18n'
+
+const { t } = useI18n()
 
 const logout = () => {
     router.post('/logout')

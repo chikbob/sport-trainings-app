@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminCoachController;
+use App\Http\Controllers\Admin\AdminRegistrationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\SportController;
@@ -9,10 +10,17 @@ use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\Admin\AdminSportController;
 use App\Http\Controllers\Admin\AdminTrainingController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Coach\CoachDashboardController;
+use App\Http\Controllers\Coach\CoachTrainingController;
+use App\Http\Controllers\Coach\CoachRegistrationController;
 use App\Models\Registration;
 use App\Models\Sport;
+use App\Models\Training;
+use App\Models\User;
+use App\Models\Coach;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -83,6 +91,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/trainings/{training}/reregister', [RegistrationController::class, 'reRegister'])
         ->name('trainings.reregister');
+
+    Route::get('/users', [ParticipantController::class, 'index'])
+        ->name('users.index');
 });
 
 
@@ -114,10 +125,23 @@ Route::middleware(['auth', 'admin'])
         Route::get('/', function () {
             return Inertia::render('Admin/Dashboard', [
                 'stats' => [
-                    'users' => \App\Models\User::count(),
-                    'sports' => \App\Models\Sport::count(),
-                    'trainings' => \App\Models\Training::count(),
-                ]
+                    'users' => User::count(),
+                    'sports' => Sport::count(),
+                    'trainings' => Training::count(),
+                    'registrations' => Registration::count(),
+                    'coaches' => Coach::count(),
+                ],
+                'recentUsers' => User::orderByDesc('created_at')
+                    ->limit(5)
+                    ->get(['id', 'name', 'email', 'role', 'created_at']),
+                'upcomingTrainings' => Training::with('sport')
+                    ->whereDate('date', '>=', Carbon::today())
+                    ->orderBy('date')
+                    ->limit(5)
+                    ->get(['id', 'sport_id', 'date', 'time', 'place']),
+                'registrationsByStatus' => Registration::select('status', DB::raw('count(*) as total'))
+                    ->groupBy('status')
+                    ->get(),
             ]);
         })->name('dashboard');
 
@@ -127,4 +151,34 @@ Route::middleware(['auth', 'admin'])
 
         // Добавляем ресурсный маршрут для coaches
         Route::resource('coaches', AdminCoachController::class);
+
+        Route::resource('registrations', AdminRegistrationController::class)
+            ->only(['index', 'edit', 'update']);
+    });
+
+//
+// КАБИНЕТ ТРЕНЕРА
+//
+Route::middleware(['auth', 'coach'])
+    ->prefix('coach')
+    ->name('coach.')
+    ->group(function () {
+        Route::get('/', [CoachDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/trainings/{training}/cancel', [CoachTrainingController::class, 'cancel'])
+            ->name('trainings.cancel');
+        Route::post('/trainings/{training}/complete', [CoachTrainingController::class, 'complete'])
+            ->name('trainings.complete');
+        Route::resource('trainings', CoachTrainingController::class)
+            ->only(['index', 'edit', 'update'])
+            ->names([
+                'index' => 'trainings.index',
+                'edit' => 'trainings.edit',
+                'update' => 'trainings.update',
+            ]);
+        Route::resource('registrations', CoachRegistrationController::class)
+            ->only(['index', 'update'])
+            ->names([
+                'index' => 'registrations.index',
+                'update' => 'registrations.update',
+            ]);
     });

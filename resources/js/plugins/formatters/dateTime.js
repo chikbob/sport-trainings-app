@@ -21,21 +21,17 @@ export function formatDateTime(dateTimeString, locale = 'uk') {
 
     const time = formatTime(timePart)
 
-    // ------- УКРАИНСКИЙ -------
-    if (locale === 'uk') {
-        if (isSameDay(date, today)) return `сьогодні о ${time}`
-        if (isSameDay(date, tomorrow)) return `завтра о ${time}`
-        if (isSameDay(date, yesterday)) return `вчора о ${time}`
-
-        return `${formatDate(datePart, locale)} о ${time}`
+    const labels = {
+        uk: { today: 'сьогодні', tomorrow: 'завтра', yesterday: 'вчора', at: 'о' },
+        ru: { today: 'сегодня', tomorrow: 'завтра', yesterday: 'вчера', at: 'в' },
+        en: { today: 'today', tomorrow: 'tomorrow', yesterday: 'yesterday', at: 'at' },
     }
 
-    // ------- РУССКИЙ -------
-    if (locale === 'ru') {
-        if (isSameDay(date, today)) return `сегодня в ${time}`
-        if (isSameDay(date, tomorrow)) return `завтра в ${time}`
-        if (isSameDay(date, yesterday)) return `вчера в ${time}`
+    const l = labels[locale] || labels.en
 
-        return `${formatDate(datePart, locale)} в ${time}`
-    }
+    if (isSameDay(date, today)) return `${l.today} ${l.at} ${time}`
+    if (isSameDay(date, tomorrow)) return `${l.tomorrow} ${l.at} ${time}`
+    if (isSameDay(date, yesterday)) return `${l.yesterday} ${l.at} ${time}`
+
+    return `${formatDate(datePart, locale)} ${l.at} ${time}`
 }

@@ -10,12 +10,21 @@ use Inertia\Inertia;
 
 class AdminSportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return Inertia::render('Admin/Sports/Index', [
             'sports' => Sport::with('coach.user')
+                ->when($request->search, function ($query) use ($request) {
+                    $search = $request->search;
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('location', 'like', "%{$search}%");
+                    });
+                })
                 ->orderBy('id', 'desc')
                 ->paginate(10)
+                ->withQueryString(),
+            'filters' => $request->only(['search']),
         ]);
     }
 

@@ -19,6 +19,9 @@ class RegistrationController extends Controller
         if ($training->date < now()->toDateString()) {
             return back()->with('error', 'Неможливо записатися на минуле тренування.');
         }
+        if ($training->is_cancelled) {
+            return back()->with('error', 'Тренування скасовано.');
+        }
 
         // Поиск существующей регистрации, включая cancelled
         $registration = Registration::where('user_id', $user->id)
@@ -67,6 +70,9 @@ class RegistrationController extends Controller
         if ($training->date < now()->toDateString()) {
             return back()->with('error', 'Неможливо записатися на минуле тренування.');
         }
+        if ($training->is_cancelled) {
+            return back()->with('error', 'Тренування скасовано.');
+        }
 
         // Обновляем статус на pending
         $registration->update(['status' => Registration::STATUS_PENDING]);
@@ -82,7 +88,8 @@ class RegistrationController extends Controller
         $registrations = Registration::with('training.sport')
             ->where('user_id', $user->id)
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Profile/Index', [
             'registrations' => $registrations,

@@ -1,10 +1,10 @@
 <template>
     <AppLayout>
         <div class="calendar-page">
-            <h2 class="calendar-page__title">Розклад тренувань</h2>
+            <h2 class="calendar-page__title">{{ t('trainings.title') }}</h2>
 
             <a v-if="isAdmin" href="/trainings/create" class="calendar-page__create-link">
-                Додати тренування
+                {{ t('trainings.add') }}
             </a>
 
             <div class="calendar">
@@ -47,6 +47,7 @@
 import {ref, computed} from 'vue'
 import {usePage, router} from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 /********************************
  *     PROPS (Важная часть!)
@@ -75,10 +76,18 @@ const today = new Date()
 const currentMonth = ref(today.getMonth())
 const currentYear = ref(today.getFullYear())
 
-const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const { t, currentLang } = useI18n()
+
+const weekdays = computed(() => t('trainings.weekdays'))
+
+const localeMap = {
+    ru: 'ru-RU',
+    uk: 'uk-UA',
+    en: 'en-US',
+}
 
 const monthName = computed(() =>
-    new Date(currentYear.value, currentMonth.value).toLocaleString('uk-UA', {
+    new Date(currentYear.value, currentMonth.value).toLocaleString(localeMap[currentLang.value] || 'en-US', {
         month: 'long'
     })
 )
@@ -142,7 +151,7 @@ const calendarCells = computed(() => {
 <style scoped>
 .calendar-page {
     max-width: 900px;
-    margin: auto;
+    margin: 60px auto 80px;
 }
 
 .calendar-page__title {

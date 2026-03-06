@@ -16,28 +16,41 @@ class SportController extends Controller
         $this->middleware('admin')->only(['create', 'store']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $sports = Sport::withCount('trainings')
+        $search = $request->get('search');
+        $sort = $request->get('sort', 'asc');
+        $sort = $sort === 'desc' ? 'desc' : 'asc';
+
+        $sports = Sport::query()
+            ->with('coach.user')
+            ->withCount('trainings')
             ->withCount([
                 'registrations as participants_count' => function ($q) {
                     $q->where('status', '!=', Registration::STATUS_CANCELLED)
                         ->distinct('user_id');
                 }
             ])
-            // Подгружаем тренировки, только с датой >= сегодня
-            ->with(['trainings' => function ($query) {
-                $query->whereDate('date', '>=', now()->toDateString());
-            }])
-            ->get()
-            // Фильтруем виды спорта, у которых есть хотя бы одна актуальная тренировка
-            ->filter(function ($sport) {
-                return $sport->trainings->isNotEmpty();
+            ->whereHas('trainings', function ($query) {
+                $query->whereDate('date', '>=', now()->toDateString())
+                    ->where('is_cancelled', false);
             })
-            ->values();
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name', $sort)
+            ->paginate(9)
+            ->withQueryString();
 
         return Inertia::render('Sports/Index', [
             'sports' => $sports,
+            'filters' => [
+                'search' => $search,
+                'sort' => $sort,
+            ],
         ]);
     }
 
@@ -64,9 +77,10 @@ class SportController extends Controller
 
     public function show(Sport $sport)
     {
-        $sport->load(['trainings' => function ($query) {
+        $sport->load(['coach.user', 'trainings' => function ($query) {
             // Только тренировки с датой сегодня или позже
             $query->whereDate('date', '>=', now()->toDateString())
+                ->where('is_cancelled', false)
                 ->orderBy('date');
         }]);
 

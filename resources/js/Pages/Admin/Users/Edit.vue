@@ -1,43 +1,48 @@
 <template>
     <AdminLayout>
         <div class="form-page">
-            <h2>Редагувати користувача</h2>
+            <h2>{{ t('admin.users.edit') }}</h2>
+
+            <div v-if="hasErrors" class="form-errors">
+                <div v-for="(msg, key) in errors" :key="key" class="form-error">{{ msg }}</div>
+            </div>
 
             <form @submit.prevent="submit" class="form">
                 <label>
-                    Ім'я
+                    {{ t('admin.forms.name') }}
                     <input v-model="form.name" type="text" required />
                 </label>
 
                 <label>
-                    Email
+                    {{ t('admin.forms.email') }}
                     <input v-model="form.email" type="email" required />
                 </label>
 
                 <label>
-                    Телефон
+                    {{ t('admin.forms.phone') }}
                     <input v-model="form.phone" type="tel" />
                 </label>
 
                 <label>
-                    Роль
+                    {{ t('admin.forms.role') }}
                     <select v-model="form.role" required>
-                        <option value="user">User</option>
-                        <option value="coach">Coach</option>
-                        <option value="admin">Admin</option>
+                        <option value="user">{{ t('admin.roles.user') }}</option>
+                        <option value="coach">{{ t('admin.roles.coach') }}</option>
+                        <option value="admin">{{ t('admin.roles.admin') }}</option>
                     </select>
                 </label>
 
-                <button class="btn-primary">Оновити</button>
+                <button class="btn-primary">{{ t('admin.forms.update') }}</button>
             </form>
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { reactive, computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const props = defineProps({
     user: Object
@@ -53,6 +58,11 @@ const form = reactive({
 const submit = () => {
     router.put(`/admin/users/${props.user.id}`, form)
 }
+
+const { t } = useI18n()
+const page = usePage()
+const errors = computed(() => page.props.errors || {})
+const hasErrors = computed(() => Object.keys(errors.value).length > 0)
 </script>
 
 <style scoped>
@@ -90,5 +100,19 @@ const submit = () => {
 
 .btn-primary:hover {
     background-color: #1d4ed8;
+}
+
+.form-errors {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.form-error + .form-error {
+    margin-top: 4px;
 }
 </style>

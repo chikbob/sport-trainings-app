@@ -1,19 +1,19 @@
 <template>
     <AppLayout>
         <div class="sports-page max-w-4xl mx-auto p-6">
-            <h2 class="sports-page__title">Список спортивних секцій</h2>
+            <h2 class="sports-page__title">{{ t('sports.title') }}</h2>
 
             <div class="sports-page__controls">
                 <input
                     v-model="search"
                     type="text"
-                    placeholder="Пошук за назвою або локацією..."
+                    :placeholder="t('sports.searchPlaceholder')"
                     class="sports-page__search"
                 />
 
                 <select v-model="sortOrder" class="sports-page__select">
-                    <option value="asc">За назвою (А-Я)</option>
-                    <option value="desc">За назвою (Я-А)</option>
+                    <option value="asc">{{ t('sports.sortAsc') }}</option>
+                    <option value="desc">{{ t('sports.sortDesc') }}</option>
                 </select>
 
                 <a
@@ -21,59 +21,74 @@
                     href="/sports/create"
                     class="sports-page__btn-add"
                 >
-                    Додати секцію
+                    {{ t('sports.add') }}
                 </a>
             </div>
 
             <div class="sports-page__grid">
                 <div
-                    v-for="sport in filteredSports"
+                    v-for="sport in sportsList"
                     :key="sport.id"
                     class="sports-page__card"
                 >
                     <h3 class="sports-page__name">{{ sport.name }}</h3>
                     <p class="sports-page__description">{{ sport.description }}</p>
-                    <p><strong>Тренер:</strong> {{ sport.coach_name }}</p>
-                    <p><strong>Локація:</strong> {{ sport.location }}</p>
+                    <p><strong>{{ t('sports.trainer') }}:</strong> {{ sport.coach?.user?.name || '—' }}</p>
+                    <p><strong>{{ t('sports.location') }}:</strong> {{ sport.location }}</p>
                     <div class="sports-page__actions">
                         <a :href="`/sports/${sport.id}`" class="sports-page__link-details">
-                            Детальніше
+                            {{ t('sports.details') }}
                         </a>
                     </div>
                 </div>
             </div>
+
+            <PaginationLinks
+                v-if="sports?.links?.length > 1"
+                class="sports-page__pagination"
+                :links="sports.links"
+            />
         </div>
     </AppLayout>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue'
-import {usePage} from '@inertiajs/vue3'
+import {computed, ref, watch} from 'vue'
+import {usePage, router} from '@inertiajs/vue3'
+import {route} from 'ziggy-js'
 import AppLayout from "@/Layouts/AppLayout.vue"
+import PaginationLinks from "@/Components/PaginationLinks.vue"
+import { useI18n } from '@/i18n/useI18n'
 
-defineProps({sports: Array})
+const props = defineProps({
+    sports: Object,
+    filters: Object,
+})
 
 const page = usePage()
 const authUser = computed(() => page.props.auth?.user ?? null)
 const isAdmin = computed(() => authUser.value?.role === 'admin')
+const { t } = useI18n()
 
-const search = ref('')
-const sortOrder = ref('asc')
+const search = ref(props.filters?.search || '')
+const sortOrder = ref(props.filters?.sort || 'asc')
 
-const filteredSports = computed(() => {
-    return page.props.sports
-        .filter(sport => {
-            const searchText = search.value.toLowerCase()
-            return sport.name.toLowerCase().includes(searchText) ||
-                (sport.location || '').toLowerCase().includes(searchText)
-        })
-        .sort((a, b) => {
-            if (sortOrder.value === 'asc') {
-                return a.name.localeCompare(b.name)
-            } else {
-                return b.name.localeCompare(a.name)
-            }
-        })
+const sportsList = computed(() => props.sports?.data || [])
+
+const changePage = (pageNumber) => {
+    router.get(
+        route('sports.index'),
+        {
+            search: search.value,
+            sort: sortOrder.value,
+            page: pageNumber,
+        },
+        {preserveState: true, replace: true}
+    )
+}
+
+watch([search, sortOrder], () => {
+    changePage(1)
 })
 
 </script>
@@ -128,6 +143,10 @@ const filteredSports = computed(() => {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
+    }
+
+    &__pagination {
+        margin-top: 28px;
     }
 
     &__card {

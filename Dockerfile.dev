@@ -1,0 +1,42 @@
+# Dev image for PHP app (no asset build)
+FROM php:8.1-fpm AS app
+
+WORKDIR /app
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    libpq-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# PHP extensions
+RUN docker-php-ext-install \
+    pdo_mysql \
+    pdo_pgsql \
+    zip \
+    bcmath
+
+# Redis extension
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install PHP deps only (source is bind-mounted at runtime)
+COPY composer.json composer.lock ./
+RUN composer install \
+    --prefer-dist \
+    --no-interaction \
+    --no-scripts
+
+# Dev image for Vite
+FROM node:20-alpine AS vite
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci

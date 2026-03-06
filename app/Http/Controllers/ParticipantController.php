@@ -14,15 +14,23 @@ class ParticipantController extends Controller
         $this->middleware('admin')->only('index');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // Загружаем всех юзеров с их регистрациями
         $users = User::with([
             'registrations.training.sport'
-        ])->orderBy('id', 'desc')->get();
+        ])
+            ->search($request->search)
+            ->role($request->role)
+            ->orderBy(
+                $request->sort ?? 'id',
+                $request->direction ?? 'desc'
+            )
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Users/Index', [
-            'users' => $users
+            'users' => $users,
+            'filters' => $request->only(['search', 'role', 'sort', 'direction'])
         ]);
     }
 }

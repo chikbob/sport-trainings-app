@@ -26,6 +26,8 @@ class TrainingFactory extends Factory
             'date'     => $this->faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d'),
             'time'     => $this->faker->time('H:i'),
             'place'    => $this->faker->city(),
+            'is_cancelled' => false,
+            'is_completed' => false,
         ];
     }
 }

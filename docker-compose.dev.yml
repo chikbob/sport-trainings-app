@@ -1,0 +1,69 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: app
+    volumes:
+      - ./app:/app/app
+      - ./artisan:/app/artisan
+      - ./bootstrap:/app/bootstrap
+      - ./config:/app/config
+      - ./database:/app/database
+      - ./resources:/app/resources
+      - ./routes:/app/routes
+      - ./public:/app/public
+      - ./storage:/app/storage
+      - ./composer.json:/app/composer.json
+      - ./composer.lock:/app/composer.lock
+      - ./.env:/app/.env
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: app
+    volumes:
+      - ./app:/app/app
+      - ./artisan:/app/artisan
+      - ./bootstrap:/app/bootstrap
+      - ./config:/app/config
+      - ./database:/app/database
+      - ./resources:/app/resources
+      - ./routes:/app/routes
+      - ./public:/app/public
+      - ./storage:/app/storage
+      - ./composer.json:/app/composer.json
+      - ./composer.lock:/app/composer.lock
+      - ./.env:/app/.env
+
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: vite
+    volumes:
+      - ./resources:/app/resources
+      - ./public:/app/public
+      - ./vite.config.js:/app/vite.config.js
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+    environment:
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=5173
+      - VITE_HMR_HOST=localhost
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: laravel_phpmyadmin
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-secret}
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - laravel

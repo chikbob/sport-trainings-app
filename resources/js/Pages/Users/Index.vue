@@ -1,7 +1,7 @@
 <template>
     <AppLayout>
         <div class="participants">
-            <h2 class="participants__title">Список користувачів</h2>
+            <h2 class="participants__title">{{ t('users.title') }}</h2>
 
             <!-- Панель управления -->
             <div class="filters">
@@ -9,14 +9,14 @@
                     v-model="search"
                     type="text"
                     class="filters__input"
-                    placeholder="Пошук за ім'ям або email..."
+                    :placeholder="t('users.searchPlaceholder')"
                 >
 
                 <select v-model="roleFilter" class="filters__select">
-                    <option value="">Всі ролі</option>
-                    <option value="user">Користувач</option>
-                    <option value="coach">Тренер</option>
-                    <option value="admin">Адмін</option>
+                    <option value="">{{ t('users.rolesAll') }}</option>
+                    <option value="user">{{ t('users.roleUser') }}</option>
+                    <option value="coach">{{ t('users.roleCoach') }}</option>
+                    <option value="admin">{{ t('users.roleAdmin') }}</option>
                 </select>
 
                 <select v-model="sortBy" class="filters__select">
@@ -29,7 +29,7 @@
 
             <div class="participants__list">
                 <div
-                    v-for="user in filteredUsers"
+                    v-for="user in usersList"
                     :key="user.id"
                     class="participants__item"
                 >
@@ -54,7 +54,7 @@
 
                     <!-- Регистрации -->
                     <div class="participants__registrations" v-if="user.registrations.length">
-                        <h4 class="participants__subtitle">Реєстрації</h4>
+                        <h4 class="participants__subtitle">{{ t('users.registrations') }}</h4>
 
                         <ul class="registrations-list">
                             <li
@@ -76,66 +76,69 @@
                     </div>
 
                     <div v-else class="empty">
-                        Користувач ще не записувався на тренування
+                        {{ t('users.emptyRegistrations') }}
                     </div>
                 </div>
             </div>
+
+            <PaginationLinks
+                v-if="props.users?.links?.length > 1"
+                class="participants__pagination"
+                :links="props.users.links"
+            />
         </div>
     </AppLayout>
 </template>
 
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import {computed, ref} from 'vue'
+import {computed, ref, watch} from 'vue'
+import {router} from '@inertiajs/vue3'
+import {route} from 'ziggy-js'
+import PaginationLinks from '@/Components/PaginationLinks.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const props = defineProps({
-    users: Array
+    users: Object,
+    filters: Object,
 })
 
-const search = ref('')
-const roleFilter = ref('')
-const sortBy = ref('id_desc')
+const { t } = useI18n()
 
-const filteredUsers = computed(() => {
-    let result = [...props.users]
+const search = ref(props.filters?.search || '')
+const roleFilter = ref(props.filters?.role || '')
+const sortBy = ref(`${props.filters?.sort || 'id'}_${props.filters?.direction || 'desc'}`)
 
-    if (search.value.trim()) {
-        result = result.filter(u =>
-            u.name.toLowerCase().includes(search.value.toLowerCase()) ||
-            u.email.toLowerCase().includes(search.value.toLowerCase())
-        )
-    }
+const usersList = computed(() => props.users?.data || [])
 
-    if (roleFilter.value) {
-        result = result.filter(u => u.role === roleFilter.value)
-    }
+const changePage = (pageNumber) => {
+    const [sort, direction] = sortBy.value.split('_')
 
-    switch (sortBy.value) {
-        case 'id_asc':
-            result.sort((a, b) => a.id - b.id);
-            break
-        case 'id_desc':
-            result.sort((a, b) => b.id - a.id);
-            break
-        case 'name_asc':
-            result.sort((a, b) => a.name.localeCompare(b.name));
-            break
-        case 'name_desc':
-            result.sort((a, b) => b.name.localeCompare(a.name));
-            break
-    }
+    router.get(
+        route('users.index'),
+        {
+            search: search.value,
+            role: roleFilter.value,
+            sort,
+            direction,
+            page: pageNumber,
+        },
+        {preserveState: true, replace: true}
+    )
+}
 
-    return result
+watch([search, roleFilter, sortBy], () => {
+    changePage(1)
 })
 
 function translateRole(role) {
     switch (role) {
         case 'admin':
-            return 'Адмін'
+            return t('users.roleAdmin')
         case 'coach':
-            return 'Тренер'
+            return t('users.roleCoach')
         case 'user':
-            return 'Користувач'
+            return t('users.roleUser')
         default:
             return role
     }
@@ -182,6 +185,10 @@ function translateRole(role) {
     @media (max-width: 800px) {
         grid-template-columns: 1fr;
     }
+}
+
+.participants__pagination {
+    margin-top: 24px;
 }
 
 .participants__item {

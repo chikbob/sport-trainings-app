@@ -1,44 +1,49 @@
 <template>
     <AdminLayout>
         <div class="form-page">
-            <h2>Створити секцію</h2>
+            <h2>{{ t('admin.sports.create') }}</h2>
+
+            <div v-if="hasErrors" class="form-errors">
+                <div v-for="(msg, key) in errors" :key="key" class="form-error">{{ msg }}</div>
+            </div>
 
             <form @submit.prevent="submit" class="form">
                 <label>
-                    Назва
-                    <input v-model="form.name" type="text" placeholder="Назва секції" required />
+                    {{ t('admin.forms.name') }}
+                    <input v-model="form.name" type="text" :placeholder="t('admin.forms.name')" required />
                 </label>
 
                 <label>
-                    Локація
-                    <input v-model="form.location" type="text" placeholder="Локація" />
+                    {{ t('admin.forms.location') }}
+                    <input v-model="form.location" type="text" :placeholder="t('admin.forms.location')" />
                 </label>
 
                 <label>
-                    Опис
-                    <textarea v-model="form.description" placeholder="Опис секції"></textarea>
+                    {{ t('admin.forms.description') }}
+                    <textarea v-model="form.description" :placeholder="t('admin.forms.description')"></textarea>
                 </label>
 
                 <label>
-                    Тренер
+                    {{ t('admin.forms.coach') }}
                     <select v-model="form.coach_id" class="input">
-                        <option value="">Оберіть тренера</option>
+                        <option value="">{{ t('admin.forms.coach') }}</option>
                         <option v-for="coach in coaches" :key="coach.id" :value="coach.id">
                             {{ coach.user.name }}
                         </option>
                     </select>
                 </label>
 
-                <button class="btn-primary">Зберегти</button>
+                <button class="btn-primary">{{ t('admin.forms.save') }}</button>
             </form>
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { reactive, computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const props = defineProps({
     coaches: Array
@@ -54,6 +59,11 @@ const form = reactive({
 const submit = () => {
     router.post('/admin/sports', form)
 }
+
+const { t } = useI18n()
+const page = usePage()
+const errors = computed(() => page.props.errors || {})
+const hasErrors = computed(() => Object.keys(errors.value).length > 0)
 </script>
 
 <style scoped>
@@ -92,5 +102,19 @@ const submit = () => {
 
 .btn-primary:hover {
     background-color: #1d4ed8;
+}
+
+.form-errors {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.form-error + .form-error {
+    margin-top: 4px;
 }
 </style>

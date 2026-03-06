@@ -3,13 +3,13 @@
         <div class="sport-show p-8">
             <h1 class="sport-show__title">{{ sport.name }}</h1>
             <p class="sport-show__description">{{ sport.description }}</p>
-            <p><strong>Тренер:</strong> {{ sport.coach_name }}</p>
-            <p><strong>Локація:</strong> {{ sport.location }}</p>
+            <p><strong>{{ t('sports.trainer') }}:</strong> {{ sport.coach?.user?.name || '—' }}</p>
+            <p><strong>{{ t('sports.location') }}:</strong> {{ sport.location }}</p>
 
-            <h2 class="sport-show__trainings-title mt-8 mb-4">Тренування</h2>
+            <h2 class="sport-show__trainings-title mt-8 mb-4">{{ t('sport.trainings') }}</h2>
 
             <div v-if="sport.trainings.length === 0">
-                Немає запланованих тренувань
+                {{ t('sport.emptyTrainings') }}
             </div>
 
             <ul class="sport-show__trainings-list">
@@ -29,14 +29,14 @@
                         class="btn btn--primary"
                         @click="register(training.id)"
                     >
-                        Записатися
+                        {{ t('sport.register') }}
                     </button>
 
                     <span
                         v-else-if="authUser && training.isRegistered"
                         class="text-green-600 font-semibold"
                     >
-                        Ви вже записані
+                        {{ t('sport.alreadyRegistered') }}
                     </span>
 
                     <a
@@ -44,7 +44,7 @@
                         href="/login"
                         class="btn btn--secondary"
                     >
-                        Увійти для запису
+                        {{ t('sport.loginToRegister') }}
                     </a>
                 </li>
             </ul>
@@ -56,6 +56,7 @@
 import {computed} from 'vue'
 import {usePage, router} from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 defineProps({
     sport: Object,
@@ -63,6 +64,7 @@ defineProps({
 
 const page = usePage()
 const authUser = computed(() => page.props.auth?.user ?? null)
+const { t } = useI18n()
 
 function register(trainingId) {
     router.post(`/trainings/${trainingId}/register`)

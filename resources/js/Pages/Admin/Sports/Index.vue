@@ -2,21 +2,30 @@
     <AdminLayout>
         <div class="page">
             <header class="page__header">
-                <h2>Секції</h2>
+                <h2>{{ t('admin.sports.title') }}</h2>
                 <Link href="/admin/sports/create" class="btn btn-primary">
-                    + Додати секцію
+                    + {{ t('admin.sports.create') }}
                 </Link>
             </header>
+
+            <div class="filters">
+                <input
+                    v-model="search"
+                    type="text"
+                    :placeholder="t('admin.users.search')"
+                    class="input"
+                />
+            </div>
 
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Назва</th>
-                    <th>Локація</th>
-                    <th>Тренер</th>
-                    <th>Опис</th>
-                    <th>Дії</th>
+                    <th>{{ t('admin.common.id') }}</th>
+                    <th>{{ t('admin.sports.name') }}</th>
+                    <th>{{ t('admin.forms.location') }}</th>
+                    <th>{{ t('admin.sports.trainer') }}</th>
+                    <th>{{ t('admin.forms.description') }}</th>
+                    <th>{{ t('admin.common.actions') }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -24,29 +33,50 @@
                     <td>{{ sport.id }}</td>
                     <td>{{ sport.name }}</td>
                     <td>{{ sport.location }}</td>
-                    <td>{{ sport.coach?.user?.name || '—' }}</td>
+                    <td>{{ sport.coach?.user?.name || t('admin.common.notSpecified') }}</td>
                     <td class="wrap-text">{{ sport.description }}</td>
                     <td class="actions">
-                        <Link :href="`/admin/sports/${sport.id}/edit`" class="btn btn-edit">Редагувати</Link>
-                        <button class="btn btn-delete" @click="destroy(sport.id)">Видалити</button>
+                        <Link :href="`/admin/sports/${sport.id}/edit`" class="btn btn-edit">{{ t('admin.common.edit') }}</Link>
+                        <button class="btn btn-delete" @click="destroy(sport.id)">{{ t('admin.common.delete') }}</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
+
+            <AdminPagination :links="sports.links" />
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AdminPagination from '@/Components/AdminPagination.vue'
 import { Link, router } from '@inertiajs/vue3'
-defineProps({ sports: Object })
+import { useI18n } from '@/i18n/useI18n'
+import { ref, watch } from 'vue'
+import { route } from 'ziggy-js'
+const props = defineProps({ sports: Object, filters: Object })
+
+const { t } = useI18n()
+const search = ref(props.filters?.search || '')
 
 const destroy = (id) => {
-    if (confirm('Ви впевнені?')) {
+    if (confirm(t('admin.common.confirmDelete'))) {
         router.delete(`/admin/sports/${id}`)
     }
 }
+
+const changePage = (page) => {
+    router.get(
+        route('admin.sports.index'),
+        { search: search.value, page },
+        { preserveState: true, replace: true }
+    )
+}
+
+watch([search], () => {
+    changePage(1)
+})
 </script>
 
 <style scoped lang="scss">
@@ -117,6 +147,20 @@ const destroy = (id) => {
         gap: 10px;
         justify-content: flex-start;
         white-space: nowrap;
+    }
+}
+
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+
+    .input {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 1rem;
+        color: #334155;
     }
 }
 

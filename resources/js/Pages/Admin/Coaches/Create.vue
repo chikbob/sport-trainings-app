@@ -1,34 +1,39 @@
 <template>
     <AdminLayout>
         <div class="form-page">
-            <h2>Створити тренера</h2>
+            <h2>{{ t('admin.coaches.create') }}</h2>
+
+            <div v-if="hasErrors" class="form-errors">
+                <div v-for="(msg, key) in errors" :key="key" class="form-error">{{ msg }}</div>
+            </div>
 
             <form @submit.prevent="submit" class="form">
                 <label>
-                    Біо:
-                    <textarea v-model="form.bio" placeholder="Біографія, інформація про тренера"></textarea>
+                    {{ t('admin.forms.bio') }}:
+                    <textarea v-model="form.bio" :placeholder="t('admin.forms.bio')"></textarea>
                 </label>
 
                 <label>
-                    Телефон:
+                    {{ t('admin.forms.phone') }}:
                     <input v-model="form.phone" type="tel" placeholder="+380..." />
                 </label>
 
                 <label>
-                    Спеціалізація:
-                    <input v-model="form.specialization" type="text" placeholder="Наприклад: футбол, теніс" />
+                    {{ t('admin.forms.specialization') }}:
+                    <input v-model="form.specialization" type="text" :placeholder="t('admin.forms.specialization')" />
                 </label>
 
-                <button class="btn-primary">Зберегти</button>
+                <button class="btn-primary">{{ t('admin.forms.save') }}</button>
             </form>
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { reactive, computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const form = reactive({
     bio: '',
@@ -39,6 +44,11 @@ const form = reactive({
 const submit = () => {
     router.post('/admin/coaches', form)
 }
+
+const { t } = useI18n()
+const page = usePage()
+const errors = computed(() => page.props.errors || {})
+const hasErrors = computed(() => Object.keys(errors.value).length > 0)
 </script>
 
 <style scoped>
@@ -76,5 +86,19 @@ const submit = () => {
 
 .btn-primary:hover {
     background-color: #1d4ed8;
+}
+
+.form-errors {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.form-error + .form-error {
+    margin-top: 4px;
 }
 </style>

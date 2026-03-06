@@ -10,12 +10,24 @@ use Inertia\Inertia;
 
 class AdminTrainingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return Inertia::render('Admin/Trainings/Index', [
             'trainings' => Training::with('sport')
+                ->when($request->search, function ($query) use ($request) {
+                    $search = $request->search;
+                    $query->where(function ($q) use ($search) {
+                        $q->where('place', 'like', "%{$search}%")
+                            ->orWhere('date', 'like', "%{$search}%")
+                            ->orWhereHas('sport', function ($sport) use ($search) {
+                                $sport->where('name', 'like', "%{$search}%");
+                            });
+                    });
+                })
                 ->orderBy('id', 'desc')
                 ->paginate(10)
+                ->withQueryString(),
+            'filters' => $request->only(['search']),
         ]);
     }
 

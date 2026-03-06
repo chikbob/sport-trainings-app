@@ -7,23 +7,36 @@
                         <img :src="logo" alt="logo" class="header__logo-img" />
                         <span class="header__title">{{ appName }}</span>
                     </Link>
-                    <Link href="/sports" :class="isActive('/sports')">Секції</Link>
-                    <Link href="/trainings" :class="isActive('/trainings')">Розклад</Link>
+                    <Link href="/sports" :class="isActive('/sports')">{{ t('header.sections') }}</Link>
+                    <Link href="/trainings" :class="isActive('/trainings')">{{ t('header.schedule') }}</Link>
                     <Link v-if="isAdmin" href="/admin/users" :class="isActive('/participants')">
-                        Учасники
+                        {{ t('header.participants') }}
+                    </Link>
+                    <Link v-if="isCoach" href="/coach" :class="isActive('/coach')">
+                        {{ t('header.coach') }}
                     </Link>
                 </nav>
             </div>
 
             <div class="header__right">
+                <div class="header__lang">
+                    <select
+                        class="header__lang-select"
+                        v-model="currentLang"
+                    >
+                        <option value="ru">RU</option>
+                        <option value="uk">UA</option>
+                        <option value="en">EN</option>
+                    </select>
+                </div>
                 <template v-if="authUser">
-                    <Link href="/profile" class="header__profile-link">Профіль</Link>
+                    <Link href="/profile" class="header__profile-link">{{ t('header.profile') }}</Link>
                     <span class="header__username">{{ authUser.name }}</span>
-                    <Link href="/logout" method="post" class="header__logout-btn">Вийти</Link>
+                    <Link href="/logout" method="post" class="header__logout-btn">{{ t('header.logout') }}</Link>
                 </template>
                 <template v-else>
-                    <Link href="/login" class="header__auth-link">Увійти</Link>
-                    <Link href="/register" class="header__auth-link header__auth-link--accent">Реєстрація</Link>
+                    <Link href="/login" class="header__auth-link">{{ t('header.login') }}</Link>
+                    <Link href="/register" class="header__auth-link header__auth-link--accent">{{ t('header.register') }}</Link>
                 </template>
             </div>
         </div>
@@ -34,6 +47,7 @@
 import { computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import logo from '@/images/logo.png'
+import { useI18n } from '@/i18n/useI18n'
 
 const page = usePage()
 const props = computed(() => page.props || {})
@@ -41,6 +55,8 @@ const props = computed(() => page.props || {})
 const authUser = computed(() => props.value.auth?.user ?? null)
 const appName = computed(() => props.value.appName ?? import.meta.env.VITE_APP_NAME ?? 'Sport Portal')
 const isAdmin = computed(() => authUser.value?.role === 'admin')
+const isCoach = computed(() => authUser.value?.role === 'coach')
+const { t, currentLang } = useI18n()
 
 function isActive(path) {
     return window.location.pathname === path
@@ -103,6 +119,26 @@ function isActive(path) {
     &__right {
         display: flex;
         align-items: center;
+    }
+
+    &__lang {
+        margin-right: 12px;
+    }
+
+    &__lang-select {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 4px 6px;
+        font-size: 12px;
+        background: #fff;
+        color: #0f172a;
+        -webkit-text-fill-color: #0f172a;
+        appearance: auto;
+    }
+
+    &__lang-select option {
+        color: #0f172a;
+        background: #fff;
     }
 
     &__auth-link {

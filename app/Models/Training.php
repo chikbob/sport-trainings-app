@@ -16,6 +16,17 @@ class Training extends Model
         'time',
         'place',
         'notes',
+        'is_cancelled',
+        'cancelled_at',
+        'is_completed',
+        'completed_at',
+    ];
+
+    protected $casts = [
+        'is_cancelled' => 'boolean',
+        'cancelled_at' => 'datetime',
+        'is_completed' => 'boolean',
+        'completed_at' => 'datetime',
     ];
 
     // Отношение к спорту

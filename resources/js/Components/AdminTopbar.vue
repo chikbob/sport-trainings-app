@@ -1,10 +1,21 @@
 <template>
     <header class="topbar">
         <div class="topbar__title">
-            Панель адміністратора
+            {{ t('admin.header.title') }}
         </div>
 
         <div class="topbar__right">
+            <div class="topbar__lang">
+                <label class="topbar__lang-label">{{ t('admin.language.label') }}</label>
+                <select
+                    class="topbar__lang-select"
+                    v-model="currentLang"
+                >
+                    <option value="ru">{{ t('admin.language.ru') }}</option>
+                    <option value="uk">{{ t('admin.language.uk') }}</option>
+                    <option value="en">{{ t('admin.language.en') }}</option>
+                </select>
+            </div>
             <span class="topbar__user">
                 {{ user.name }}
             </span>
@@ -13,7 +24,7 @@
                 class="topbar__logout"
                 @click="logout"
             >
-                Вийти
+                {{ t('admin.header.logout') }}
             </button>
         </div>
     </header>
@@ -21,9 +32,11 @@
 
 <script setup>
 import {usePage, router} from '@inertiajs/vue3'
+import { useI18n } from '@/i18n/useI18n'
 
 const page = usePage()
 const user = page.props.auth.user
+const { t, currentLang } = useI18n()
 
 const logout = () => {
     router.post('/logout')
@@ -50,6 +63,33 @@ const logout = () => {
         display: flex;
         align-items: center;
         gap: 20px;
+    }
+
+    &__lang {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__lang-label {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    &__lang-select {
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        background: #fff;
+        color: #0f172a;
+        -webkit-text-fill-color: #0f172a;
+        appearance: auto;
+    }
+
+    &__lang-select option {
+        color: #0f172a;
+        background: #fff;
     }
 
     &__user {

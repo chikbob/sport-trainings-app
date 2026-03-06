@@ -2,54 +2,84 @@
     <AdminLayout>
         <div class="page">
             <header class="page__header">
-                <h2>Тренування</h2>
+                <h2>{{ t('admin.trainings.title') }}</h2>
                 <Link href="/admin/trainings/create" class="btn btn-primary">
-                    + Додати тренування
+                    + {{ t('admin.trainings.create') }}
                 </Link>
             </header>
+
+            <div class="filters">
+                <input
+                    v-model="search"
+                    type="text"
+                    :placeholder="t('admin.users.search')"
+                    class="input"
+                />
+            </div>
 
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Секція</th>
-                    <th>Дата</th>
-                    <th>Час</th>
-                    <th>Місце</th>
-                    <th>Примітки</th>
-                    <th>Дії</th>
+                    <th>{{ t('admin.common.id') }}</th>
+                    <th>{{ t('admin.sports.title') }}</th>
+                    <th>{{ t('admin.forms.date') }}</th>
+                    <th>{{ t('admin.forms.time') }}</th>
+                    <th>{{ t('admin.forms.place') }}</th>
+                    <th>{{ t('admin.trainings.notes') }}</th>
+                    <th>{{ t('admin.common.actions') }}</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr v-for="training in trainings.data" :key="training.id">
                     <td>{{ training.id }}</td>
-                    <td>{{ training.sport?.name || '—' }}</td>
-                    <td>{{ training.date }}</td>
+                    <td>{{ training.sport?.name || t('admin.common.notSpecified') }}</td>
+                    <td>{{ $formatDate(training.date) }}</td>
                     <td>{{ training.time }}</td>
-                    <td>{{ training.place || '—' }}</td>
-                    <td class="wrap-text">{{ training.notes || '—' }}</td>
+                    <td>{{ training.place || t('admin.common.notSpecified') }}</td>
+                    <td class="wrap-text">{{ training.notes || t('admin.common.notSpecified') }}</td>
                     <td class="actions">
-                        <Link :href="`/admin/trainings/${training.id}/edit`" class="btn btn-edit">Редагувати</Link>
-                        <button class="btn btn-delete" @click="destroy(training.id)">Видалити</button>
+                        <Link :href="`/admin/trainings/${training.id}/edit`" class="btn btn-edit">{{ t('admin.common.edit') }}</Link>
+                        <button class="btn btn-delete" @click="destroy(training.id)">{{ t('admin.common.delete') }}</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
+
+            <AdminPagination :links="trainings.links" />
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AdminPagination from '@/Components/AdminPagination.vue'
 import { Link, router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n/useI18n'
+import { ref, watch } from 'vue'
+import { route } from 'ziggy-js'
 
-defineProps({ trainings: Object })
+const props = defineProps({ trainings: Object, filters: Object })
+
+const { t } = useI18n()
+const search = ref(props.filters?.search || '')
 
 const destroy = (id) => {
-    if (confirm('Ви впевнені?')) {
+    if (confirm(t('admin.common.confirmDelete'))) {
         router.delete(`/admin/trainings/${id}`)
     }
 }
+
+const changePage = (page) => {
+    router.get(
+        route('admin.trainings.index'),
+        { search: search.value, page },
+        { preserveState: true, replace: true }
+    )
+}
+
+watch([search], () => {
+    changePage(1)
+})
 </script>
 
 <style scoped lang="scss">
@@ -120,6 +150,20 @@ const destroy = (id) => {
         gap: 10px;
         justify-content: flex-start;
         white-space: nowrap;
+    }
+}
+
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+
+    .input {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 1rem;
+        color: #334155;
     }
 }
 

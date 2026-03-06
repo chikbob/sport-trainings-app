@@ -1,39 +1,39 @@
 <template>
     <AppLayout>
         <div class="profile-page max-w-3xl mx-auto p-6">
-            <h1 class="profile-page__title">Мої записи на тренування</h1>
+            <h1 class="profile-page__title">{{ t('profile.title') }}</h1>
 
             <div class="profile-page__controls">
                 <input
                     v-model="search"
                     type="text"
-                    placeholder="Пошук за секцією або місцем..."
+                    :placeholder="t('profile.searchPlaceholder')"
                     class="profile-page__search"
                 />
 
                 <select v-model="filterStatus" class="profile-page__select">
-                    <option value="">Всі статуси</option>
-                    <option value="pending">Очікує підтвердження</option>
-                    <option value="approved">Підтверджено</option>
-                    <option value="cancelled">Скасовано</option>
-                    <option value="rejected">Відхилено</option>
-                    <option value="attended">Відвідано</option>
-                    <option value="no_show">Не з’явився</option>
+                    <option value="">{{ t('profile.allStatuses') }}</option>
+                    <option value="pending">{{ t('profile.status.pending') }}</option>
+                    <option value="approved">{{ t('profile.status.approved') }}</option>
+                    <option value="cancelled">{{ t('profile.status.cancelled') }}</option>
+                    <option value="rejected">{{ t('profile.status.rejected') }}</option>
+                    <option value="attended">{{ t('profile.status.attended') }}</option>
+                    <option value="no_show">{{ t('profile.status.no_show') }}</option>
                 </select>
 
                 <select v-model="sortOrder" class="profile-page__select">
-                    <option value="desc">За датою (нові спочатку)</option>
-                    <option value="asc">За датою (старі спочатку)</option>
+                    <option value="desc">{{ t('profile.sortDesc') }}</option>
+                    <option value="asc">{{ t('profile.sortAsc') }}</option>
                 </select>
 
                 <label>
                     <input type="checkbox" v-model="showArchive"/>
-                    Показати архів
+                    {{ t('profile.showArchive') }}
                 </label>
             </div>
 
             <div v-if="filteredRegistrations.length === 0" class="profile-page__empty">
-                Немає записів за вашим запитом.
+                {{ t('profile.empty') }}
             </div>
 
             <ul v-else class="profile-page__list">
@@ -44,10 +44,10 @@
                     :class="{ 'profile-page__item--archived': isPastTraining(registration) }"
                 >
                     <div class="profile-page__info">
-                        <div><b>Секція:</b> {{ registration.training.sport.name }}</div>
-                        <div><b>Дата:</b> {{ $formatDate(registration.training.date) }}</div>
-                        <div><b>Час:</b> {{ registration.training.time }}</div>
-                        <div><b>Місце:</b> {{ registration.training.place || 'не вказано' }}</div>
+                        <div><b>{{ t('home.section') }}:</b> {{ registration.training.sport.name }}</div>
+                        <div><b>{{ t('home.date') }}:</b> {{ $formatDate(registration.training.date) }}</div>
+                        <div><b>{{ t('home.time') }}:</b> {{ registration.training.time }}</div>
+                        <div><b>{{ t('home.place') }}:</b> {{ registration.training.place || t('home.notSpecified') }}</div>
                         <div><b>Статус:</b>
                             <span :class="getStatusClass(registration.status)">
                              {{" " + getStatusLabel(registration.status) }}
@@ -62,7 +62,7 @@
                             @click="cancelRegistration(registration.id)"
                             class="profile-page__btn-cancel"
                         >
-                            Відмінити
+                            {{ t('profile.cancel') }}
                         </button>
 
                         <button
@@ -70,14 +70,20 @@
                             @click="reRegister(registration.training.id)"
                             class="profile-page__btn-re-register"
                         >
-                            Записатися знову
+                            {{ t('profile.reRegister') }}
                         </button>
                     </div>
                     <div style="color: #1e293b;" v-else>
-                        Поміщено до архіву
+                        {{ t('profile.archived') }}
                     </div>
                 </li>
             </ul>
+
+            <PaginationLinks
+                v-if="props.registrations?.links?.length > 1"
+                class="profile-page__pagination"
+                :links="props.registrations.links"
+            />
         </div>
     </AppLayout>
 </template>
@@ -86,9 +92,11 @@
 import {ref, computed} from 'vue'
 import {router} from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import PaginationLinks from '@/Components/PaginationLinks.vue'
+import { useI18n } from '@/i18n/useI18n'
 
 const props = defineProps({
-    registrations: Array
+    registrations: Object
 })
 
 const search = ref('')
@@ -96,17 +104,19 @@ const filterStatus = ref('')
 const sortOrder = ref('desc')
 const showArchive = ref(false);
 
-const statusLabels = {
-    pending: 'Очікує підтвердження',
-    approved: 'Підтверджено',
-    cancelled: 'Скасовано',
-    rejected: 'Відхилено',
-    attended: 'Відвідано',
-    no_show: 'Не з’явився'
-}
+const { t } = useI18n()
+
+const statusLabels = computed(() => ({
+    pending: t('profile.status.pending'),
+    approved: t('profile.status.approved'),
+    cancelled: t('profile.status.cancelled'),
+    rejected: t('profile.status.rejected'),
+    attended: t('profile.status.attended'),
+    no_show: t('profile.status.no_show')
+}))
 
 function getStatusLabel(status) {
-    return statusLabels[status] || status
+    return statusLabels.value[status] || status
 }
 
 function getStatusClass(status) {
@@ -120,8 +130,10 @@ function getStatusClass(status) {
     }
 }
 
+const registrationsList = computed(() => props.registrations?.data || [])
+
 const filteredRegistrations = computed(() => {
-    return props.registrations
+    return registrationsList.value
         .filter(r => {
             const searchText = search.value.toLowerCase();
             const sportName = r.training.sport.name.toLowerCase();
@@ -153,34 +165,34 @@ function isPastTraining(registration) {
 }
 
 function cancelRegistration(registrationId) {
-    if (!confirm('Ви впевнені, що хочете скасувати цю реєстрацію?')) {
+    if (!confirm(t('profile.confirmCancel'))) {
         return
     }
 
     router.delete(route('registrations.cancel', registrationId), {
         onSuccess: () => {
-            alert('Реєстрацію скасовано.')
+            alert(t('profile.cancelSuccess'))
             // Можно перезагрузить страницу, чтобы обновить данные
             location.reload()
         },
         onError: () => {
-            alert('Сталася помилка при скасуванні.')
+            alert(t('profile.cancelError'))
         }
     })
 }
 
 function reRegister(trainingId) {
-    if (!confirm('Ви впевнені, що хочете записатися знову на це тренування?')) {
+    if (!confirm(t('profile.confirmReRegister'))) {
         return;
     }
 
     router.post(route('trainings.reregister', trainingId), {
         onSuccess: () => {
-            alert('Ви успішно записались знову!');
+            alert(t('profile.reRegisterSuccess'));
             location.reload();
         },
         onError: () => {
-            alert('Сталася помилка при повторній реєстрації.');
+            alert(t('profile.reRegisterError'));
         }
     });
 }
@@ -223,6 +235,10 @@ function reRegister(trainingId) {
         display: flex;
         flex-direction: column;
         gap: 16px;
+    }
+
+    &__pagination {
+        margin-top: 24px;
     }
 
     &__item {

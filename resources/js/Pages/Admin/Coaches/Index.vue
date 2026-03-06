@@ -2,50 +2,81 @@
     <AdminLayout>
         <div class="page">
             <header class="page__header">
-                <h2>Тренери</h2>
-                <Link href="/admin/coaches/create" class="btn btn-primary">+ Додати тренера</Link>
+                <h2>{{ t('admin.coaches.title') }}</h2>
+                <Link href="/admin/coaches/create" class="btn btn-primary">+ {{ t('admin.coaches.create') }}</Link>
             </header>
+
+            <div class="filters">
+                <input
+                    v-model="search"
+                    type="text"
+                    :placeholder="t('admin.users.search')"
+                    class="input"
+                />
+            </div>
 
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Ім'я користувача</th>
-                    <th>Телефон</th>
-                    <th>Спеціалізація</th>
-                    <th>Дії</th>
+                    <th>{{ t('admin.common.id') }}</th>
+                    <th>{{ t('admin.coaches.userName') }}</th>
+                    <th>{{ t('admin.forms.phone') }}</th>
+                    <th>{{ t('admin.forms.specialization') }}</th>
+                    <th>{{ t('admin.common.actions') }}</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr v-for="coach in coaches.data" :key="coach.id">
                     <td>{{ coach.id }}</td>
-                    <td>{{ coach.user?.name || '—' }}</td>
-                    <td>{{ coach.phone || '—' }}</td>
-                    <td>{{ coach.specialization || '—' }}</td>
+                    <td>{{ coach.user?.name || t('admin.common.notSpecified') }}</td>
+                    <td>{{ coach.phone || t('admin.common.notSpecified') }}</td>
+                    <td>{{ coach.specialization || t('admin.common.notSpecified') }}</td>
                     <td class="actions">
-                        <Link :href="`/admin/coaches/${coach.id}/edit`" class="btn btn-edit">Редагувати</Link>
-                        <button class="btn btn-delete" @click="destroy(coach.id)">Видалити</button>
+                        <Link :href="`/admin/coaches/${coach.id}/edit`" class="btn btn-edit">{{ t('admin.common.edit') }}</Link>
+                        <button class="btn btn-delete" @click="destroy(coach.id)">{{ t('admin.common.delete') }}</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
+
+            <AdminPagination :links="coaches.links" />
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AdminPagination from '@/Components/AdminPagination.vue'
 import { Link, router } from '@inertiajs/vue3'
+import { useI18n } from '@/i18n/useI18n'
+import { ref, watch } from 'vue'
+import { route } from 'ziggy-js'
 
-defineProps({
-    coaches: Object
+const props = defineProps({
+    coaches: Object,
+    filters: Object,
 })
 
+const { t } = useI18n()
+const search = ref(props.filters?.search || '')
+
 const destroy = (id) => {
-    if (confirm('Ви впевнені?')) {
+    if (confirm(t('admin.common.confirmDelete'))) {
         router.delete(`/admin/coaches/${id}`)
     }
 }
+
+const changePage = (page) => {
+    router.get(
+        route('admin.coaches.index'),
+        { search: search.value, page },
+        { preserveState: true, replace: true }
+    )
+}
+
+watch([search], () => {
+    changePage(1)
+})
 </script>
 
 <style scoped lang="scss">
@@ -110,6 +141,20 @@ const destroy = (id) => {
         gap: 10px;
         justify-content: flex-start;
         white-space: nowrap;
+    }
+}
+
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+
+    .input {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 1rem;
+        color: #334155;
     }
 }
 

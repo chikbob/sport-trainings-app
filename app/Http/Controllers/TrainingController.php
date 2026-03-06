@@ -46,17 +46,32 @@ class TrainingController extends Controller
             ]);
 
         $isRegistered = false;
+        $canManage = false;
+        $coachRegistrations = [];
 
         if (Auth::check()) {
             $isRegistered = Registration::where('user_id', Auth::id())
                 ->where('training_id', $training->id)
                 ->where('status', '!=', Registration::STATUS_CANCELLED)
                 ->exists();
+
+            if (Auth::user()->role === 'coach') {
+                $coach = \App\Models\Coach::where('user_id', Auth::id())->first();
+                $canManage = $coach && $training->sport->coach_id === $coach->id;
+                if ($canManage) {
+                    $coachRegistrations = $training->registrations()
+                        ->with('user')
+                        ->orderByDesc('created_at')
+                        ->get();
+                }
+            }
         }
 
         return Inertia::render('Trainings/Show', [
             'training' => $training,
             'isRegistered' => $isRegistered,
+            'canManage' => $canManage,
+            'coachRegistrations' => $coachRegistrations,
         ]);
     }
 
