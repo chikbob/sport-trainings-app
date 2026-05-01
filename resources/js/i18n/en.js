@@ -1,4 +1,12 @@
 export default {
+    common: {
+        trainingStatus: {
+            planned: "Planned",
+            active: "Active",
+            completed: "Completed",
+            cancelled: "Cancelled",
+        },
+    },
     pagination: {
         previous: "Previous",
         next: "Next",
@@ -12,6 +20,7 @@ export default {
         login: "Log in",
         register: "Register",
         logout: "Log out",
+        subtitle: "Fitness club sections and schedule",
     },
     footer: {
         rights: "All rights reserved.",
@@ -19,8 +28,8 @@ export default {
         contacts: "Contacts",
     },
     home: {
-        title: "Sports sections information portal",
-        subtitle: "Browse the schedule, choose sections, and register!",
+        title: "Fitness club sections information system",
+        subtitle: "Browse club sections, follow the class schedule, and manage your registrations in one place.",
         nextTraining: "My next training",
         section: "Section",
         date: "Date",
@@ -31,6 +40,14 @@ export default {
         latestSports: "Latest sports",
         details: "Details",
         noDescription: "No description",
+        clubActivities: "Club activities",
+        clubActivitiesHint: "Group classes and your personal attendance schedule.",
+        groupPrograms: "Group programs",
+        groupProgramsHint: "Strength, functional, and recovery sessions for club members.",
+        personalSchedule: "Class schedule",
+        personalScheduleHint: "An up-to-date calendar with quick booking for the right time.",
+        memberArea: "Member area",
+        memberAreaHint: "Your sections and schedule are already available in the top navigation.",
     },
     sports: {
         title: "Sports sections list",
@@ -86,6 +103,7 @@ export default {
         sortDesc: "By date (newest first)",
         sortAsc: "By date (oldest first)",
         showArchive: "Show archive",
+        showArchiveHint: "Toggle to review completed classes.",
         empty: "No registrations for your request.",
         cancel: "Cancel",
         reRegister: "Register again",
@@ -157,7 +175,7 @@ export default {
     },
     admin: {
         common: {
-            logo: "Sport Admin",
+            logo: "FitClub Admin",
             id: "ID",
             actions: "Actions",
             edit: "Edit",

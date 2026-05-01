@@ -1,101 +1,80 @@
 <template>
     <AdminLayout>
-        <div class="dashboard">
-            <h2 class="dashboard__title">
-                {{ t('admin.dashboard.title') }}
-            </h2>
+        <PageHeader :title="t('admin.dashboard.title')" :description="t('admin.header.title')" />
 
-            <div class="dashboard__grid">
-                <div class="card">
-                    <span>{{ t('admin.stats.users') }}</span>
-                    <strong>{{ safeStats.users }}</strong>
-                </div>
+        <div class="ui-kpi-grid">
+            <StatCard :label="t('admin.stats.users')" :value="safeStats.users" />
+            <StatCard :label="t('admin.stats.coaches')" :value="safeStats.coaches" />
+            <StatCard :label="t('admin.stats.sports')" :value="safeStats.sports" />
+            <StatCard :label="t('admin.stats.trainings')" :value="safeStats.trainings" />
+        </div>
 
-                <div class="card">
-                    <span>{{ t('admin.stats.coaches') }}</span>
-                    <strong>{{ safeStats.coaches }}</strong>
-                </div>
-
-                <div class="card">
-                    <span>{{ t('admin.stats.sports') }}</span>
-                    <strong>{{ safeStats.sports }}</strong>
-                </div>
-
-                <div class="card">
-                    <span>{{ t('admin.stats.trainings') }}</span>
-                    <strong>{{ safeStats.trainings }}</strong>
-                </div>
-
-                <div class="card">
-                    <span>{{ t('admin.stats.registrations') }}</span>
-                    <strong>{{ safeStats.registrations }}</strong>
-                </div>
-            </div>
-
-            <div class="dashboard__content">
-                <section class="panel">
-                    <h3>{{ t('admin.dashboard.recentUsers') }}</h3>
-                    <ul class="list">
-                        <li v-for="user in safeRecentUsers" :key="user.id" class="list__item">
-                            <div>
-                                <div class="list__title">{{ user.name }}</div>
-                                <div class="list__subtitle">{{ user.email }}</div>
-                            </div>
-                            <div class="list__meta">
-                                <span class="badge" :class="'role-' + user.role">
-                                    {{ translateRole(user.role) }}
-                                </span>
-                                <span class="list__date">{{ $formatDate(user.created_at) }}</span>
-                            </div>
-                        </li>
-                        <li v-if="safeRecentUsers.length === 0" class="list__empty">
-                            {{ t('admin.dashboard.emptyUsers') }}
-                        </li>
-                    </ul>
-                </section>
-
-                <section class="panel">
-                    <h3>{{ t('admin.dashboard.upcomingTrainings') }}</h3>
-                    <ul class="list">
-                        <li v-for="training in safeUpcomingTrainings" :key="training.id" class="list__item">
-                            <div>
-                                <div class="list__title">{{ training.sport?.name || t('admin.common.notSpecified') }}</div>
-                                <div class="list__subtitle">
-                                    {{ $formatDate(training.date) }} • {{ training.time }}
-                                </div>
-                            </div>
-                            <div class="list__meta">{{ training.place || t('admin.common.notSpecified') }}</div>
-                        </li>
-                        <li v-if="safeUpcomingTrainings.length === 0" class="list__empty">
-                            {{ t('admin.dashboard.emptyTrainings') }}
-                        </li>
-                    </ul>
-                </section>
-
-                <section class="panel">
-                    <h3>{{ t('admin.dashboard.registrationsStatus') }}</h3>
-                    <div class="status-grid">
-                        <div
-                            v-for="item in safeRegistrationsByStatus"
-                            :key="item.status"
-                            class="status-card"
-                        >
-                            <span class="status-card__label">{{ translateStatus(item.status) }}</span>
-                            <strong>{{ item.total }}</strong>
+        <div class="ui-grid ui-grid--3">
+            <AppCard :title="t('admin.dashboard.recentUsers')">
+                <EmptyState
+                    v-if="safeRecentUsers.length === 0"
+                    :title="t('admin.dashboard.emptyUsers')"
+                    :description="t('admin.users.title')"
+                />
+                <div v-else class="ui-list">
+                    <div v-for="user in safeRecentUsers" :key="user.id" class="ui-list-item">
+                        <div>
+                            <div class="ui-list-item__title">{{ user.name }}</div>
+                            <div class="ui-list-item__meta">{{ user.email }}</div>
+                        </div>
+                        <div class="ui-inline-actions">
+                            <StatusBadge :value="user.role" kind="role" />
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </AppCard>
+
+            <AppCard :title="t('admin.dashboard.upcomingTrainings')">
+                <EmptyState
+                    v-if="safeUpcomingTrainings.length === 0"
+                    :title="t('admin.dashboard.emptyTrainings')"
+                    :description="t('admin.trainings.title')"
+                />
+                <div v-else class="ui-list">
+                    <div v-for="training in safeUpcomingTrainings" :key="training.id" class="ui-list-item">
+                        <div>
+                            <div class="ui-list-item__title">{{ training.sport?.name || t('admin.common.notSpecified') }}</div>
+                            <div class="ui-list-item__meta">
+                                {{ $formatDate(training.date) }} · {{ $formatTime(training.time) }}
+                            </div>
+                        </div>
+                        <StatusBadge :value="trainingStatus(training)" kind="training" />
+                    </div>
+                </div>
+            </AppCard>
+
+            <AppCard :title="t('admin.dashboard.registrationsStatus')">
+                <EmptyState
+                    v-if="safeRegistrationsByStatus.length === 0"
+                    :title="t('admin.registrations.empty')"
+                    :description="t('admin.registrations.title')"
+                />
+                <div v-else class="ui-list">
+                    <div v-for="item in safeRegistrationsByStatus" :key="item.status" class="ui-list-item">
+                        <div class="ui-list-item__title">{{ translateStatus(item.status) }}</div>
+                        <StatusBadge :value="item.status" />
+                        <strong>{{ item.total }}</strong>
+                    </div>
+                </div>
+            </AppCard>
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
-import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { computed } from 'vue'
+import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AppCard from '@/Components/AppCard.vue'
+import EmptyState from '@/Components/EmptyState.vue'
+import PageHeader from '@/Components/PageHeader.vue'
+import StatCard from '@/Components/StatCard.vue'
+import StatusBadge from '@/Components/StatusBadge.vue'
 import { useI18n } from '@/i18n/useI18n'
-
-const { t } = useI18n()
 
 const props = defineProps({
     stats: Object,
@@ -104,30 +83,12 @@ const props = defineProps({
     registrationsByStatus: Array,
 })
 
-const safeStats = computed(() => props.stats || {
-    users: 0,
-    coaches: 0,
-    sports: 0,
-    trainings: 0,
-    registrations: 0,
-})
+const { t } = useI18n()
 
+const safeStats = computed(() => props.stats || { users: 0, coaches: 0, sports: 0, trainings: 0, registrations: 0 })
 const safeRecentUsers = computed(() => props.recentUsers || [])
 const safeUpcomingTrainings = computed(() => props.upcomingTrainings || [])
 const safeRegistrationsByStatus = computed(() => props.registrationsByStatus || [])
-
-function translateRole(role) {
-    switch (role) {
-        case 'admin':
-            return t('admin.roles.admin')
-        case 'coach':
-            return t('admin.roles.coach')
-        case 'user':
-            return t('admin.roles.user')
-        default:
-            return role
-    }
-}
 
 function translateStatus(status) {
     const map = {
@@ -138,164 +99,13 @@ function translateStatus(status) {
         attended: t('admin.status.attended'),
         no_show: t('admin.status.no_show'),
     }
+
     return map[status] || status
 }
+
+function trainingStatus(training) {
+    if (training.is_cancelled) return 'cancelled'
+    if (training.is_completed) return 'completed'
+    return training.date > new Date().toISOString().slice(0, 10) ? 'planned' : 'active'
+}
 </script>
-
-<style scoped lang="scss">
-.dashboard {
-
-    &__title {
-        font-size: 26px;
-        font-weight: 700;
-        margin-bottom: 30px;
-        color: #1e293b;
-    }
-
-    &__grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 24px;
-    }
-
-    &__content {
-        margin-top: 32px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 24px;
-    }
-}
-
-.card {
-    background: white;
-    padding: 28px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-
-    span {
-        font-size: 14px;
-        color: #64748b;
-    }
-
-    strong {
-        font-size: 32px;
-        color: #0f172a;
-    }
-}
-
-.panel {
-    background: #fff;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-
-    h3 {
-        font-size: 18px;
-        font-weight: 700;
-        margin-bottom: 14px;
-        color: #0f172a;
-    }
-}
-
-.list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    &__item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid #e2e8f0;
-        gap: 12px;
-    }
-
-    &__item:last-child {
-        border-bottom: none;
-    }
-
-    &__title {
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    &__subtitle {
-        font-size: 13px;
-        color: #64748b;
-    }
-
-    &__meta {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 6px;
-        font-size: 13px;
-        color: #475569;
-    }
-
-    &__date {
-        font-size: 12px;
-        color: #94a3b8;
-    }
-
-    &__empty {
-        padding: 10px 0;
-        color: #94a3b8;
-        font-size: 14px;
-    }
-}
-
-.badge {
-    padding: 4px 10px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    border-radius: 999px;
-    text-transform: uppercase;
-}
-
-.role-admin {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-.role-coach {
-    background: #ffedd5;
-    color: #b45309;
-}
-
-.role-user {
-    background: #e0f2fe;
-    color: #0369a1;
-}
-
-.status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 14px;
-}
-
-.status-card {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    &__label {
-        font-size: 12px;
-        text-transform: uppercase;
-        color: #64748b;
-        letter-spacing: 0.04em;
-    }
-
-    strong {
-        font-size: 22px;
-        color: #0f172a;
-    }
-}
-</style>

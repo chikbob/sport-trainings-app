@@ -1,52 +1,64 @@
 <template>
     <header class="header">
-        <div class="container header__inner">
-            <div class="header__left">
+        <div class="app-container header__inner">
+            <Link href="/" class="header__logo">
+                <span class="header__logo-mark">FC</span>
+                <div class="header__brand">
+                    <span class="header__title">{{ appName }}</span>
+                    <span class="header__subtitle">{{ t('header.subtitle') }}</span>
+                </div>
+            </Link>
+
+            <button type="button" class="header__menu" @click="mobileOpen = !mobileOpen">
+                Menu
+            </button>
+
+            <div :class="['header__panel', { 'is-open': mobileOpen }]">
                 <nav class="header__nav">
-                    <Link href="/" class="header__logo">
-                        <img :src="logo" alt="logo" class="header__logo-img" />
-                        <span class="header__title">{{ appName }}</span>
-                    </Link>
-                    <Link href="/sports" :class="isActive('/sports')">{{ t('header.sections') }}</Link>
-                    <Link href="/trainings" :class="isActive('/trainings')">{{ t('header.schedule') }}</Link>
-                    <Link v-if="isAdmin" href="/admin/users" :class="isActive('/participants')">
-                        {{ t('header.participants') }}
-                    </Link>
-                    <Link v-if="isCoach" href="/coach" :class="isActive('/coach')">
-                        {{ t('header.coach') }}
+                    <Link
+                        v-for="item in navItems"
+                        :key="item.href"
+                        :href="item.href"
+                        :class="['header__nav-link', { 'header__nav-link--active': item.active }]"
+                        @click="mobileOpen = false"
+                    >
+                        {{ item.label }}
                     </Link>
                 </nav>
-            </div>
 
-            <div class="header__right">
-                <div class="header__lang">
-                    <select
-                        class="header__lang-select"
-                        v-model="currentLang"
-                    >
-                        <option value="ru">RU</option>
+                <div class="header__right">
+                    <select class="header__lang-select" v-model="currentLang">
                         <option value="uk">UA</option>
                         <option value="en">EN</option>
                     </select>
+
+                    <template v-if="authUser">
+                        <Link href="/profile" class="header__profile-link" @click="mobileOpen = false">
+                            {{ t('header.profile') }}
+                        </Link>
+                        <span class="header__username">{{ authUser.name }}</span>
+                        <Link href="/logout" method="post" class="header__logout-btn" @click="mobileOpen = false">
+                            {{ t('header.logout') }}
+                        </Link>
+                    </template>
+
+                    <template v-else>
+                        <Link href="/login" class="header__auth-link" @click="mobileOpen = false">
+                            {{ t('header.login') }}
+                        </Link>
+                        <Link href="/register" class="header__auth-link header__auth-link--accent" @click="mobileOpen = false">
+                            {{ t('header.register') }}
+                        </Link>
+                    </template>
                 </div>
-                <template v-if="authUser">
-                    <Link href="/profile" class="header__profile-link">{{ t('header.profile') }}</Link>
-                    <span class="header__username">{{ authUser.name }}</span>
-                    <Link href="/logout" method="post" class="header__logout-btn">{{ t('header.logout') }}</Link>
-                </template>
-                <template v-else>
-                    <Link href="/login" class="header__auth-link">{{ t('header.login') }}</Link>
-                    <Link href="/register" class="header__auth-link header__auth-link--accent">{{ t('header.register') }}</Link>
-                </template>
             </div>
         </div>
     </header>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
-import logo from '@/images/logo.png'
 import { useI18n } from '@/i18n/useI18n'
 
 const page = usePage()
@@ -56,130 +68,226 @@ const authUser = computed(() => props.value.auth?.user ?? null)
 const appName = computed(() => props.value.appName ?? import.meta.env.VITE_APP_NAME ?? 'Sport Portal')
 const isAdmin = computed(() => authUser.value?.role === 'admin')
 const isCoach = computed(() => authUser.value?.role === 'coach')
+const currentRoute = computed(() => props.value.currentRoute ?? '')
 const { t, currentLang } = useI18n()
+const mobileOpen = ref(false)
 
-function isActive(path) {
-    return window.location.pathname === path
-        ? 'header__nav-link header__nav-link--active'
-        : 'header__nav-link'
-}
+const navItems = computed(() => [
+    { href: '/sports', label: t('header.sections'), active: currentRoute.value.startsWith('sports.') },
+    { href: '/trainings', label: t('header.schedule'), active: currentRoute.value.startsWith('trainings.') },
+    ...(isCoach.value ? [{ href: '/coach', label: t('header.coach'), active: currentRoute.value.startsWith('coach.') }] : []),
+    ...(isAdmin.value ? [{ href: '/admin', label: t('header.participants'), active: currentRoute.value.startsWith('admin.') }] : []),
+])
 </script>
 
 <style lang="scss" scoped>
 .header {
-    background: #fff;
-    margin: 0 auto;
-    padding: 0 24px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(191, 204, 220, 0.7);
 
     &__inner {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 0;
+        gap: 16px;
+        min-height: 78px;
     }
 
     &__logo {
         display: flex;
         align-items: center;
+        gap: 12px;
         text-decoration: none;
-        color: #000;
+        color: #0f172a;
+        flex-shrink: 0;
 
-        &-img {
-            height: 32px;
-            margin-right: 8px;
-        }
-
-        & .header__title {
-            font-size: 20px;
-            font-weight: 700;
+        &-mark {
+            height: 44px;
+            width: 44px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            box-shadow: 0 14px 24px rgba(37, 99, 235, 0.18);
         }
     }
 
+    &__brand {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    &__title {
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    &__subtitle {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    &__menu {
+        display: none;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid #d9e2ec;
+        background: #fff;
+        font-weight: 700;
+    }
+
+    &__panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        flex: 1;
+    }
+
     &__nav {
-        margin-left: 24px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 
-        &-link {
-            margin-right: 16px;
-            text-decoration: none;
-            color: #555;
-            font-weight: 500;
+    &__nav-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: #42576d;
+        font-weight: 700;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
 
-            &:hover {
-                color: #007bff;
-            }
-
-            &--active {
-                color: #007bff;
-                font-weight: 600;
-            }
-        }
+    &__nav-link:hover,
+    &__nav-link--active {
+        background: #eff6ff;
+        color: #1d4ed8;
     }
 
     &__right {
         display: flex;
         align-items: center;
-    }
-
-    &__lang {
-        margin-right: 12px;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     &__lang-select {
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        padding: 4px 6px;
-        font-size: 12px;
+        min-height: 40px;
+        padding: 0 12px;
+        border: 1px solid #d9e2ec;
+        border-radius: 999px;
+        font-size: 13px;
         background: #fff;
         color: #0f172a;
-        -webkit-text-fill-color: #0f172a;
-        appearance: auto;
-    }
-
-    &__lang-select option {
-        color: #0f172a;
-        background: #fff;
     }
 
     &__auth-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
         text-decoration: none;
-        color: #007bff;
-        margin-left: 10px;
+        color: #1d4ed8;
+        font-weight: 700;
 
         &--accent {
-            font-weight: 600;
+            background: #2563eb;
+            color: #fff;
         }
     }
 
     &__logout-btn {
-        background: #e53935;
-        color: #fff;
-        padding: 6px 12px;
-        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
         text-decoration: none;
-        font-size: 14px;
+        background: #dc2626;
+        color: #fff;
+        font-weight: 700;
 
         &:hover {
-            background: #c62828;
+            background: #b91c1c;
         }
     }
 
     &__username {
         font-size: 14px;
-        color: #333;
-        margin-right: 10px;
+        color: #475569;
+        font-weight: 700;
     }
 
-    /* Новый стиль для ссылки Профіль */
     &__profile-link {
-        margin-right: 10px;
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
         text-decoration: none;
-        color: #007bff;
-        font-weight: 600;
-        cursor: pointer;
+        color: #0f172a;
+        background: #f8fafc;
+        border: 1px solid #d9e2ec;
+        font-weight: 700;
+    }
+}
 
-        &:hover {
-            color: #0056b3;
+@media (max-width: 960px) {
+    .header {
+        &__menu {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &__panel {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: calc(100% + 8px);
+            display: none;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid rgba(191, 204, 220, 0.8);
+            border-radius: 18px;
+            box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+        }
+
+        &__panel.is-open {
+            display: flex;
+        }
+
+        &__nav,
+        &__right {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        &__nav-link,
+        &__profile-link,
+        &__auth-link,
+        &__logout-btn,
+        &__lang-select {
+            width: 100%;
+            justify-content: center;
         }
     }
 }

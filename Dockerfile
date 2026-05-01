@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
+RUN pecl install redis && docker-php-ext-enable redis
+
 RUN docker-php-ext-install \
     pdo_mysql \
     pdo_pgsql \
@@ -32,7 +34,6 @@ RUN mkdir -p bootstrap/cache
 # Install PHP dependencies
 RUN composer install \
     --prefer-dist \
-    --no-dev \
     --no-interaction \
     --optimize-autoloader \
     --no-scripts
@@ -66,6 +67,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
+RUN pecl install redis && docker-php-ext-enable redis
+
 RUN docker-php-ext-install \
     pdo_mysql \
     pdo_pgsql \

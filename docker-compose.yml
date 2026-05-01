@@ -19,6 +19,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:
+      - ./.env:/app/.env:ro
+      - ./public:/app/public
       - ./storage:/app/storage
       - ./bootstrap/cache:/app/bootstrap/cache
       - ./database:/app/database
@@ -30,7 +32,7 @@ services:
     networks:
       - laravel
     healthcheck:
-      test: ["CMD", "pgrep", "php-fpm"]
+      test: ["CMD-SHELL", "php-fpm -t >/dev/null 2>&1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,10 +46,11 @@ services:
       target: builder
     container_name: laravel_vite
     working_dir: /app
-    command: npm run dev
+    command: sh -lc "npm run dev -- --host 0.0.0.0 --port ${VITE_PORT:-5173}"
     ports:
-      - "5173:5173"
+      - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
     volumes:
+      - ./.env:/app/.env:ro
       - ./resources:/app/resources
       - ./public/build:/app/public/build
       - ./vite.config.js:/app/vite.config.js
@@ -55,6 +58,7 @@ services:
       - ./package-lock.json:/app/package-lock.json
     environment:
       - VITE_HOST=0.0.0.0
+      - VITE_PORT=${VITE_PORT:-5173}
     networks:
       - laravel
     stdin_open: true
@@ -99,8 +103,8 @@ services:
     container_name: laravel_nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${APP_PORT:-80}:80"
+      - "${APP_HTTPS_PORT:-443}:443"
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./public:/app/public:ro
@@ -128,6 +132,8 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-secret}
       - REDIS_HOST=redis
     volumes:
+      - ./.env:/app/.env:ro
+      - ./public:/app/public
       - ./storage:/app/storage
       - ./bootstrap/cache:/app/bootstrap/cache
       - ./database:/app/database
@@ -137,6 +143,12 @@ services:
       - redis
     networks:
       - laravel
+    healthcheck:
+      test: ["CMD-SHELL", "php -v >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
   laravel_db:

@@ -1,52 +1,42 @@
 <template>
     <AdminLayout>
-        <div class="form-page">
-            <h2>{{ t('admin.users.create') }}</h2>
+        <PageHeader :title="t('admin.users.create')" :description="t('admin.users.title')" />
 
-            <div v-if="hasErrors" class="form-errors">
-                <div v-for="(msg, key) in errors" :key="key" class="form-error">{{ msg }}</div>
+        <AppCard>
+            <div v-if="hasErrors" class="ui-error-list">
+                <div v-for="(msg, key) in errors" :key="key">{{ msg }}</div>
             </div>
 
-            <form @submit.prevent="submit" class="form">
-                <label>
-                    {{ t('admin.forms.name') }}
-                    <input v-model="form.name" type="text" required />
-                </label>
-
-                <label>
-                    {{ t('admin.forms.email') }}
-                    <input v-model="form.email" type="email" required />
-                </label>
-
-                <label>
-                    {{ t('admin.forms.password') }}
-                    <input v-model="form.password" type="password" required />
-                </label>
-
-                <label>
-                    {{ t('admin.forms.phone') }}
-                    <input v-model="form.phone" type="tel" />
-                </label>
-
-                <label>
-                    {{ t('admin.forms.role') }}
-                    <select v-model="form.role" required>
+            <form class="ui-form" @submit.prevent="submit">
+                <div class="ui-form-grid">
+                    <AppInput v-model="form.name" :label="t('admin.forms.name')" required />
+                    <AppInput v-model="form.email" :label="t('admin.forms.email')" type="email" required />
+                    <AppInput v-model="form.password" :label="t('admin.forms.password')" type="password" required />
+                    <AppInput v-model="form.phone" :label="t('admin.forms.phone')" />
+                    <AppInput v-model="form.role" :label="t('admin.forms.role')" as="select">
                         <option value="user">{{ t('admin.roles.user') }}</option>
                         <option value="coach">{{ t('admin.roles.coach') }}</option>
                         <option value="admin">{{ t('admin.roles.admin') }}</option>
-                    </select>
-                </label>
+                    </AppInput>
+                </div>
 
-                <button class="btn-primary">{{ t('admin.forms.create') }}</button>
+                <div class="ui-inline-actions">
+                    <AppButton type="submit">{{ t('admin.forms.create') }}</AppButton>
+                    <AppButton href="/admin/users" variant="secondary">{{ t('admin.users.title') }}</AppButton>
+                </div>
             </form>
-        </div>
+        </AppCard>
     </AdminLayout>
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue'
+import { computed, reactive } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AppButton from '@/Components/AppButton.vue'
+import AppCard from '@/Components/AppCard.vue'
+import AppInput from '@/Components/AppInput.vue'
+import PageHeader from '@/Components/PageHeader.vue'
 import { useI18n } from '@/i18n/useI18n'
 
 const form = reactive({
@@ -57,64 +47,12 @@ const form = reactive({
     role: 'user',
 })
 
-const { t } = useI18n()
 const page = usePage()
 const errors = computed(() => page.props.errors || {})
 const hasErrors = computed(() => Object.keys(errors.value).length > 0)
+const { t } = useI18n()
 
 const submit = () => {
     router.post('/admin/users', form)
 }
 </script>
-
-<style scoped>
-.form-page {
-    max-width: 600px;
-    margin: 2rem auto;
-}
-
-.form label {
-    display: block;
-    margin-bottom: 1rem;
-    font-weight: 600;
-}
-
-.form input,
-.form select {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-top: 0.25rem;
-    font-size: 1rem;
-}
-
-.btn-primary {
-    background-color: #2563eb;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 700;
-    transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-    background-color: #1d4ed8;
-}
-
-.form-errors {
-    background: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 12px;
-    font-size: 0.9rem;
-}
-
-.form-error + .form-error {
-    margin-top: 4px;
-}
-</style>

@@ -1,81 +1,63 @@
 <template>
     <AppLayout>
-        <div class="calendar-page">
-            <h2 class="calendar-page__title">{{ t('trainings.title') }}</h2>
+        <div class="ui-page">
+            <PageHeader :title="t('trainings.title')" :description="monthLabel">
+                <template #actions>
+                    <AppButton type="button" variant="secondary" @click="prevMonth">‹</AppButton>
+                    <AppButton type="button" variant="secondary" @click="nextMonth">›</AppButton>
+                </template>
+            </PageHeader>
 
-            <a v-if="isAdmin" href="/trainings/create" class="calendar-page__create-link">
-                {{ t('trainings.add') }}
-            </a>
-
-            <div class="calendar">
-                <div class="calendar__header">
-                    <button @click="prevMonth">‹</button>
-                    <h3>{{ monthName }} {{ currentYear }}</h3>
-                    <button @click="nextMonth">›</button>
-                </div>
-
-                <div class="calendar__grid">
-                    <div class="calendar__weekday" v-for="d in weekdays" :key="d">
-                        {{ d }}
+            <AppCard soft>
+                <div class="calendar">
+                    <div class="calendar__weekdays">
+                        <div v-for="day in weekdays" :key="day" class="calendar__weekday">{{ day }}</div>
                     </div>
 
-                    <div
-                        v-for="cell in calendarCells"
-                        :key="cell.dateKey"
-                        class="calendar__cell"
-                        :class="{ 'calendar__cell--today': cell.isToday }"
-                    >
-                        <div class="calendar__date">{{ cell.day }}</div>
-
+                    <div class="calendar__grid">
                         <div
-                            v-for="training in cell.trainings"
-                            :key="training.id"
-                            class="calendar__event"
-                            @click="openTraining(training)"
+                            v-for="cell in calendarCells"
+                            :key="cell.dateKey"
+                            class="calendar__cell"
+                            :class="{ 'calendar__cell--today': cell.isToday, 'calendar__cell--empty': !cell.day }"
                         >
-                            <b>{{ training.time }}</b>
-                            — {{ training.sport.name }}
+                            <div class="calendar__date">{{ cell.day }}</div>
+
+                            <button
+                                v-for="training in cell.trainings"
+                                :key="training.id"
+                                type="button"
+                                class="calendar__event"
+                                @click="openTraining(training)"
+                            >
+                                <strong>{{ $formatTime(training.time) }}</strong>
+                                <span>{{ training.sport.name }}</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </AppCard>
         </div>
     </AppLayout>
 </template>
 
 <script setup>
-import {ref, computed} from 'vue'
-import {usePage, router} from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import AppButton from '@/Components/AppButton.vue'
+import AppCard from '@/Components/AppCard.vue'
+import PageHeader from '@/Components/PageHeader.vue'
 import { useI18n } from '@/i18n/useI18n'
 
-/********************************
- *     PROPS (Важная часть!)
- ********************************/
 const props = defineProps({
-    trainings: {type: Array, required: true},
+    trainings: { type: Array, required: true },
 })
 
-console.log(props.now)
-
-/********************************
- *         AUTH
- ********************************/
-const page = usePage()
-const authUser = computed(() => page.props.auth?.user ?? null)
-const isAdmin = computed(() => authUser.value?.role === 'admin')
-
-function openTraining(training) {
-    router.visit(route('trainings.show', training.id))
-}
-
-/********************************
- *         CALENDAR
- ********************************/
 const today = new Date()
 const currentMonth = ref(today.getMonth())
 const currentYear = ref(today.getFullYear())
-
 const { t, currentLang } = useI18n()
 
 const weekdays = computed(() => t('trainings.weekdays'))
@@ -86,61 +68,53 @@ const localeMap = {
     en: 'en-US',
 }
 
-const monthName = computed(() =>
-    new Date(currentYear.value, currentMonth.value).toLocaleString(localeMap[currentLang.value] || 'en-US', {
-        month: 'long'
-    })
-)
+const monthLabel = computed(() => new Date(currentYear.value, currentMonth.value).toLocaleString(
+    localeMap[currentLang.value] || 'en-US',
+    { month: 'long', year: 'numeric' }
+))
+
+function openTraining(training) {
+    router.visit(route('trainings.show', training.id))
+}
 
 function prevMonth() {
     if (currentMonth.value === 0) {
         currentMonth.value = 11
-        currentYear.value--
-    } else currentMonth.value--
+        currentYear.value -= 1
+        return
+    }
+
+    currentMonth.value -= 1
 }
 
 function nextMonth() {
     if (currentMonth.value === 11) {
         currentMonth.value = 0
-        currentYear.value++
-    } else currentMonth.value++
+        currentYear.value += 1
+        return
+    }
+
+    currentMonth.value += 1
 }
 
-/********************************
- *        FIXED CALENDAR CELLS
- ********************************/
 const calendarCells = computed(() => {
     const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-    const startDay = (firstDay.getDay() + 6) % 7 // Понеділок = 0
-
+    const startDay = (firstDay.getDay() + 6) % 7
     const daysInMonth = new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
     const cells = []
 
-    // Пустые клетки перед 1 днем месяца
-    for (let i = 0; i < startDay; i++) {
-        cells.push({
-            day: '',
-            trainings: [],
-            dateKey: 'empty-' + i
-        })
+    for (let index = 0; index < startDay; index += 1) {
+        cells.push({ day: '', trainings: [], dateKey: `empty-${index}`, isToday: false })
     }
 
-    // Дни месяца
-    for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${currentYear.value}-${(currentMonth.value + 1)
-            .toString()
-            .padStart(2, '0')}-${d.toString().padStart(2, '0')}`
+    for (let day = 1; day <= daysInMonth; day += 1) {
+        const dateStr = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
         cells.push({
-            day: d,
+            day,
             dateKey: dateStr,
-            isToday:
-                d === today.getDate() &&
-                currentMonth.value === today.getMonth() &&
-                currentYear.value === today.getFullYear(),
-
-            // ✔️ ПРАВИЛЬНОЕ ОБРАЩЕНИЕ К ТРЕНИРОВКАМ
-            trainings: props.trainings.filter(t => t.date === dateStr)
+            isToday: day === today.getDate() && currentMonth.value === today.getMonth() && currentYear.value === today.getFullYear(),
+            trainings: props.trainings.filter((training) => training.date === dateStr),
         })
     }
 
@@ -149,93 +123,68 @@ const calendarCells = computed(() => {
 </script>
 
 <style scoped>
-.calendar-page {
-    max-width: 900px;
-    margin: 60px auto 80px;
-}
-
-.calendar-page__title {
-    font-size: 28px;
-    margin-bottom: 20px;
-}
-
-.calendar-page__create-link {
-    display: inline-block;
-    margin-bottom: 20px;
-    background: #4CAF50;
-    color: white;
-    padding: 8px 14px;
-    border-radius: 6px;
-    text-decoration: none;
-}
-
 .calendar {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-.calendar__header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 12px;
 }
 
+.calendar__weekdays,
 .calendar__grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
 }
 
 .calendar__weekday {
     text-align: center;
-    font-weight: bold;
-    padding: 6px;
+    font-weight: 800;
+    color: #587089;
 }
 
 .calendar__cell {
-    min-height: 95px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 6px;
-    background: #fafafa;
-    font-size: 14px;
+    min-height: 128px;
+    padding: 10px;
+    border: 1px solid rgba(191, 204, 220, 0.9);
+    border-radius: 14px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .calendar__cell--today {
-    border-color: #3b82f6;
-    box-shadow: 0 0 3px #3b82f6;
+    border-color: rgba(37, 99, 235, 0.65);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.calendar__cell--empty {
+    background: #f8fafc;
 }
 
 .calendar__date {
-    font-weight: bold;
-    margin-bottom: 4px;
+    font-weight: 800;
 }
 
 .calendar__event {
-    background: #cfe3ff;
-    padding: 4px 6px;
-    border-radius: 4px;
-    margin-bottom: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
     cursor: pointer;
-    transition: 0.2s;
+    text-align: left;
 }
 
-.calendar__event:hover {
-    background: #a5c8ff;
-}
-
-/* Buttons */
-.btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #777;
-}
-
-.btn--primary {
-    background: #2563eb;
-    color: white;
+@media (max-width: 860px) {
+    .calendar__weekdays,
+    .calendar__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 </style>

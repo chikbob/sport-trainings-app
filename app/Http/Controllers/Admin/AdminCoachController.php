@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coach;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -35,12 +36,18 @@ class AdminCoachController extends Controller
 
     public function create()
     {
-        return Inertia::render('Admin/Coaches/Create');
+        return Inertia::render('Admin/Coaches/Create', [
+            'coachUsers' => User::where('role', 'coach')
+                ->whereDoesntHave('coach')
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']),
+        ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'user_id' => 'required|exists:users,id|unique:coaches,user_id',
             'bio' => 'nullable|string',
             'phone' => 'nullable|string|max:30',
             'specialization' => 'nullable|string|max:255',
@@ -54,7 +61,7 @@ class AdminCoachController extends Controller
     public function edit(Coach $coach)
     {
         return Inertia::render('Admin/Coaches/Edit', [
-            'coach' => $coach
+            'coach' => $coach->load('user')
         ]);
     }
 

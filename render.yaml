@@ -1,0 +1,88 @@
+services:
+  - type: web
+    name: fitclub-pulse-web
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    dockerCommand: /bin/sh -lc "php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"
+    preDeployCommand: /bin/sh ./scripts/render-predeploy.sh
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_NAME
+        value: FitClub Pulse
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fitclub-pulse-db
+          property: connectionString
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_CLIENT
+        value: phpredis
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fitclub-pulse-redis
+          property: connectionString
+
+  - type: worker
+    name: fitclub-pulse-worker
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    dockerCommand: /bin/sh -lc "php artisan queue:work --sleep=3 --tries=3"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        fromService:
+          type: web
+          name: fitclub-pulse-web
+          envVarKey: APP_KEY
+      - key: APP_NAME
+        value: FitClub Pulse
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fitclub-pulse-db
+          property: connectionString
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_CLIENT
+        value: phpredis
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fitclub-pulse-redis
+          property: connectionString
+
+  - type: keyvalue
+    name: fitclub-pulse-redis
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: fitclub-pulse-db
+    plan: basic-256mb

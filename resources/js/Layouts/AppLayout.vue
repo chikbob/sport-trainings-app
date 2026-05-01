@@ -1,12 +1,14 @@
 <template>
-    <div style="height: 100dvh" class="flex flex-col">
-        <Header/>
+    <div class="app-shell">
+        <Header />
 
-        <main class="flex-1 container mx-auto px-4 py-8">
-            <slot/>
+        <main class="app-main">
+            <div class="app-container">
+                <slot />
+            </div>
         </main>
 
-        <Footer/>
+        <Footer />
     </div>
 </template>
 

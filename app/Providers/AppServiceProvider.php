@@ -5,6 +5,7 @@ namespace App\Providers;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        if (env('RENDER_EXTERNAL_URL')) {
+            URL::forceRootUrl(env('RENDER_EXTERNAL_URL'));
+        }
+
+        if (app()->environment('production') || env('RENDER')) {
+            URL::forceScheme('https');
+        }
+
         Inertia::share([
             'auth' => function () {
                 return [

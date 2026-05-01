@@ -1,12 +1,13 @@
 <template>
     <footer class="footer">
-        <div class="container footer__inner">
-            <div class="footer__text">
-                © {{ new Date().getFullYear() }} {{ appName }}. {{ t('footer.rights') }}
+        <div class="app-container footer__inner">
+            <div class="footer__brand">
+                <strong>{{ appName }}</strong>
+                <span>© {{ new Date().getFullYear() }} {{ t('footer.rights') }}</span>
             </div>
             <div class="footer__links">
-                <a href="/about" class="footer__link">{{ t('footer.about') }}</a>
-                <a href="/contacts" class="footer__link">{{ t('footer.contacts') }}</a>
+                <Link href="/sports" class="footer__link">{{ t('header.sections') }}</Link>
+                <Link href="/trainings" class="footer__link">{{ t('header.schedule') }}</Link>
             </div>
         </div>
     </footer>
@@ -14,7 +15,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import { useI18n } from '@/i18n/useI18n'
 
 const page = usePage()
@@ -26,30 +27,43 @@ const { t } = useI18n()
 
 <style lang="scss" scoped>
 .footer {
-    background: #fff;
-    border-top: 1px solid #ddd;
-    padding: 16px 24px;
+    background: #ffffff;
+    border-top: 1px solid rgba(191, 204, 220, 0.8);
+    padding: 22px 0 28px;
     font-size: 14px;
-    color: #555;
+    color: #556b82;
 
     &__inner {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    &__brand {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        strong {
+            color: #0f172a;
+        }
     }
 
     &__links {
         display: flex;
         gap: 16px;
+        flex-wrap: wrap;
     }
 
     &__link {
-        color: #007bff;
+        color: #1d4ed8;
         text-decoration: none;
+        font-weight: 700;
 
         &:hover {
-            text-decoration: underline;
+            color: #1e40af;
         }
     }
 }

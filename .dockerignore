@@ -16,9 +16,7 @@ storage/framework/sessions
 storage/framework/views
 bootstrap/cache
 public/hot
-tests
 .phpunit.result.cache
-phpunit.xml
 .editorconfig
 README.md
 docker-compose.override.yml

@@ -40,6 +40,7 @@ class AdminUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
+            'phone' => 'nullable|string|max:30',
             'role' => 'required|in:user,coach,admin',
         ]);
 
@@ -60,6 +61,7 @@ class AdminUserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:30',
             'role' => 'required|in:user,coach,admin',
         ]);
 

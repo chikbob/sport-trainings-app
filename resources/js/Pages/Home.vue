@@ -1,189 +1,144 @@
 <template>
     <AppLayout>
-        <div class="home max-w-4xl mx-auto p-8">
-            <h1 class="home__title">{{ t('home.title') }}</h1>
-            <p class="home__subtitle">
-                {{ t('home.subtitle') }}
-            </p>
+        <div class="ui-page">
+            <PageHeader
+                eyebrow="FitClub"
+                :title="t('home.title')"
+                :description="t('home.subtitle')"
+            >
+                <template v-if="!authUser" #actions>
+                    <AppButton href="/sports">{{ t('header.sections') }}</AppButton>
+                    <AppButton href="/trainings" variant="secondary">{{ t('header.schedule') }}</AppButton>
+                </template>
+            </PageHeader>
 
-            <!-- Ближайшая тренировка -->
-            <div v-if="nextRegistration" class="home__card fade">
-                <h2 class="home__card-title">{{ t('home.nextTraining') }}</h2>
-
-                <div class="home__info">
-                    <div><b>{{ t('home.section') }}:</b> {{ nextRegistration.training.sport.name }}</div>
-                    <div><b>{{ t('home.date') }}:</b> {{ $formatDate(nextRegistration.training.date) }}</div>
-                    <div><b>{{ t('home.time') }}:</b> {{ nextRegistration.training.time }}</div>
-                    <div><b>{{ t('home.place') }}:</b> {{ nextRegistration.training.place || t('home.notSpecified') }}</div>
-                </div>
-
-                <a
-                    :href="route('trainings.show', nextRegistration.training.id)"
-                    class="home__btn"
+            <div class="ui-grid ui-grid--2">
+                <AppCard
+                    v-if="nextRegistration"
+                    :title="t('home.nextTraining')"
+                    :subtitle="nextRegistration.training.sport.name"
+                    soft
                 >
-                    {{ t('home.goToTraining') }}
-                </a>
-            </div>
-
-            <!-- Последние секции -->
-            <div v-else-if="latestSports?.length" class="home__sections fade">
-                <h2 class="home__card-title">{{ t('home.latestSports') }}</h2>
-
-                <div class="home__sections-list">
-                    <div
-                        v-for="sport in latestSports"
-                        :key="sport.id"
-                        class="home__section-card"
-                    >
-                        <h3 class="home__section-name">{{ sport.name }}</h3>
-                        <p class="home__section-desc">{{ sport.description || t('home.noDescription') }}</p>
-
-                        <a :href="route('sports.show', sport.id)" class="home__btn-small">
-                            {{ t('home.details') }}
-                        </a>
+                    <div class="ui-list">
+                        <div class="ui-list-item">
+                            <div>
+                                <div class="ui-list-item__title">{{ $formatDate(nextRegistration.training.date) }}</div>
+                                <div class="ui-list-item__meta">
+                                    {{ $formatTime(nextRegistration.training.time) }} · {{ nextRegistration.training.place || t('home.notSpecified') }}
+                                </div>
+                            </div>
+                            <StatusBadge :value="nextTrainingStatus" kind="training" />
+                        </div>
                     </div>
-                </div>
+
+                    <div class="ui-inline-actions" style="margin-top: 20px;">
+                        <AppButton :href="route('trainings.show', nextRegistration.training.id)">
+                            {{ t('home.goToTraining') }}
+                        </AppButton>
+                    </div>
+                </AppCard>
+
+                <AppCard
+                    v-else
+                    :title="t('home.latestSports')"
+                    :subtitle="t('sports.title')"
+                    soft
+                >
+                    <EmptyState
+                        v-if="!latestSports?.length"
+                        :title="t('home.latestSports')"
+                        :description="t('profile.empty')"
+                    />
+
+                    <div v-else class="ui-grid">
+                        <div
+                            v-for="sport in latestSports"
+                            :key="sport.id"
+                            class="ui-list-item"
+                        >
+                            <div>
+                                <div class="ui-list-item__title">{{ sport.name }}</div>
+                                <div class="ui-list-item__meta">{{ sport.description || t('home.noDescription') }}</div>
+                            </div>
+                            <AppButton :href="route('sports.show', sport.id)" variant="secondary" size="sm">
+                                {{ t('home.details') }}
+                            </AppButton>
+                        </div>
+                    </div>
+                </AppCard>
+
+                <AppCard :title="t('home.clubActivities')" :subtitle="t('home.clubActivitiesHint')">
+                    <div class="ui-list">
+                        <div class="ui-list-item">
+                            <div>
+                                <div class="ui-list-item__title">{{ t('home.groupPrograms') }}</div>
+                                <div class="ui-list-item__meta">{{ t('home.groupProgramsHint') }}</div>
+                            </div>
+                        </div>
+                        <div class="ui-list-item">
+                            <div>
+                                <div class="ui-list-item__title">{{ t('home.personalSchedule') }}</div>
+                                <div class="ui-list-item__meta">{{ t('home.personalScheduleHint') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </AppCard>
+
+                <AppCard v-if="!authUser" :title="t('header.profile')" :subtitle="t('header.login')">
+                    <div class="ui-inline-actions">
+                        <AppButton href="/login" variant="secondary">{{ t('header.login') }}</AppButton>
+                        <AppButton href="/register">{{ t('header.register') }}</AppButton>
+                    </div>
+                </AppCard>
+
+                <AppCard v-else :title="t('home.memberArea')" :subtitle="t('home.memberAreaHint')" soft>
+                    <div class="ui-list">
+                        <div class="ui-list-item">
+                            <div>
+                                <div class="ui-list-item__title">{{ t('header.sections') }}</div>
+                                <div class="ui-list-item__meta">{{ t('home.groupProgramsHint') }}</div>
+                            </div>
+                        </div>
+                        <div class="ui-list-item">
+                            <div>
+                                <div class="ui-list-item__title">{{ t('header.schedule') }}</div>
+                                <div class="ui-list-item__meta">{{ t('home.personalScheduleHint') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </AppCard>
             </div>
         </div>
     </AppLayout>
 </template>
 
 <script setup>
-import AppLayout from "@/Layouts/AppLayout.vue";
+import { computed } from 'vue'
+import { usePage } from '@inertiajs/vue3'
+import AppLayout from '@/Layouts/AppLayout.vue'
+import AppCard from '@/Components/AppCard.vue'
+import AppButton from '@/Components/AppButton.vue'
+import EmptyState from '@/Components/EmptyState.vue'
+import PageHeader from '@/Components/PageHeader.vue'
+import StatusBadge from '@/Components/StatusBadge.vue'
 import { useI18n } from '@/i18n/useI18n'
 
-defineProps({
+const props = defineProps({
     nextRegistration: Object,
     latestSports: Array,
-});
+})
 
 const { t } = useI18n()
+const page = usePage()
+const authUser = computed(() => page.props.auth?.user ?? null)
+
+const nextTrainingStatus = computed(() => {
+    if (!props.nextRegistration?.training) return 'planned'
+
+    const training = props.nextRegistration.training
+    if (training.is_cancelled) return 'cancelled'
+    if (training.is_completed) return 'completed'
+
+    return training.date > new Date().toISOString().slice(0, 10) ? 'planned' : 'active'
+})
 </script>
-
-<style lang="scss" scoped>
-.home {
-    text-align: center;
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 24px;
-
-    &__title {
-        font-size: 32px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 10px;
-    }
-
-    &__subtitle {
-        font-size: 16px;
-        color: #64748b;
-        margin-bottom: 40px;
-    }
-
-    /* Карточки */
-    &__card,
-    &__section-card {
-        background: #ffffff;
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        transition: box-shadow 0.3s ease, transform 0.2s ease;
-        text-align: left;
-
-        &:hover {
-            box-shadow: 0 7px 18px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
-        }
-    }
-
-    &__card-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 16px;
-        text-align: left;
-    }
-
-    &__info {
-        font-size: 15px;
-        color: #334155;
-        line-height: 1.6;
-        margin-bottom: 20px;
-
-        div {
-            margin-bottom: 6px;
-        }
-    }
-
-    /* Большая кнопка */
-    &__btn {
-        display: inline-block;
-        background: #2563eb;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: background 0.25s ease;
-
-        &:hover {
-            background: #1d4ed8;
-        }
-    }
-
-    /* Маленькая кнопка */
-    &__btn-small {
-        background: #0ea5e9;
-        color: white;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-        display: inline-block;
-        margin-top: 12px;
-        text-decoration: none;
-        transition: background 0.25s ease;
-
-        &:hover {
-            background: #0284c7;
-        }
-    }
-
-    /* Секции */
-    &__sections-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-    }
-
-    &__section-name {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 6px;
-    }
-
-    &__section-desc {
-        color: #475569;
-        font-size: 14px;
-        margin-bottom: 10px;
-        min-height: 40px;
-    }
-}
-
-/* Плавное появление */
-.fade {
-    animation: fadeIn 0.4s ease;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        translate: 0 5px;
-    }
-    to {
-        opacity: 1;
-        translate: 0 0;
-    }
-}
-</style>
