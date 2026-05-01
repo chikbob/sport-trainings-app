@@ -35,6 +35,7 @@ instead of `realpath(...)`.
 `railway.toml` pins deployment to the repository `Dockerfile` and configures:
 
 - healthcheck: `/health`
+- start command: runs `/entrypoint.sh` and then `supervisord`
 - restart policy
 - pre-deploy command
 
@@ -43,6 +44,7 @@ The runtime image is also adapted for Railway:
 - nginx listens on `PORT` from Railway
 - nginx talks to PHP-FPM over `127.0.0.1:9000` inside the same container
 - the nginx server block is rendered at startup from `docker/nginx/runtime.conf.template`
+- the start command is explicit so stale dashboard start-command overrides do not bypass the Docker entrypoint
 
 ## Pre-deploy command
 
