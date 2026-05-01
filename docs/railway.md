@@ -48,8 +48,12 @@ The runtime image is also adapted for Railway:
 
 `scripts/railway-predeploy.sh`:
 
-1. runs `php artisan optimize:clear`
-2. runs `php artisan migrate --force`
+1. creates Laravel runtime directories
+2. removes bootstrap cache files directly from disk
+3. clears compiled Blade views
+4. runs `php artisan migrate --force`
+
+This avoids `cache:clear` against Redis during pre-deploy. Railway may start the build/deploy container before a Redis service is reachable, so clearing the application cache store during deployment is fragile.
 
 ## Recommended Railway variables
 
@@ -63,6 +67,12 @@ The runtime image is also adapted for Railway:
 - `SESSION_DRIVER=redis`
 - `QUEUE_CONNECTION=redis`
 - `REDIS_URL=...`
+
+If Redis is not attached on Railway yet, use:
+
+- `CACHE_DRIVER=file`
+- `SESSION_DRIVER=file`
+- `QUEUE_CONNECTION=database` or `sync`
 
 ## Notes
 
