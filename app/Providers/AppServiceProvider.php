@@ -27,7 +27,11 @@ class AppServiceProvider extends ServiceProvider
             URL::forceRootUrl(env('RENDER_EXTERNAL_URL'));
         }
 
-        if (app()->environment('production') || env('RENDER')) {
+        if (! env('APP_URL') && env('RAILWAY_PUBLIC_DOMAIN')) {
+            URL::forceRootUrl('https://' . env('RAILWAY_PUBLIC_DOMAIN'));
+        }
+
+        if (app()->environment('production') || env('RENDER') || env('RAILWAY_PUBLIC_DOMAIN')) {
             URL::forceScheme('https');
         }
 

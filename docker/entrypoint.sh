@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Wait for database to be ready when host/port are provided explicitly.
 DB_WAIT_HOST="${DB_HOST:-}"
 DB_WAIT_PORT="${DB_PORT:-}"
@@ -17,8 +19,6 @@ else
   echo "Skipping database wait: DB_HOST or DB_PORT is not set."
 fi
 
-echo "Starting services..."
-
 # Prefer APP_KEY from the mounted .env file when it is not provided explicitly.
 if [ -z "$APP_KEY" ] && [ -f /app/.env ]; then
   APP_KEY_FROM_ENV=$(grep -E '^APP_KEY=' /app/.env | head -n 1 | cut -d '=' -f 2-)
@@ -26,6 +26,22 @@ if [ -z "$APP_KEY" ] && [ -f /app/.env ]; then
     export APP_KEY="$APP_KEY_FROM_ENV"
   fi
 fi
+
+mkdir -p \
+  /etc/nginx/conf.d \
+  /app/bootstrap/cache \
+  /app/storage/logs \
+  /app/storage/framework/cache \
+  /app/storage/framework/sessions \
+  /app/storage/framework/views
+
+APP_PORT="${PORT:-80}"
+sed \
+  -e "s/__PORT__/${APP_PORT}/g" \
+  -e "s#__FASTCGI_PASS__#127.0.0.1:9000#g" \
+  /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+
+echo "Starting services..."
 
 # Start supervisord
 exec "$@"

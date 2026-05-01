@@ -81,7 +81,7 @@ COPY docker/php/www.conf /usr/local/etc/php-fpm.d/
 
 # Copy Nginx config
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY docker/nginx/default.conf /etc/nginx/sites-available/default
+COPY docker/nginx/runtime.conf.template /etc/nginx/templates/default.conf.template
 
 # Copy Supervisor config
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
