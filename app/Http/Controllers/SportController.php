@@ -28,7 +28,7 @@ class SportController extends Controller
             ->withCount([
                 'registrations as participants_count' => function ($q) {
                     $q->where('status', '!=', Registration::STATUS_CANCELLED)
-                        ->distinct('user_id');
+                        ->selectRaw('COUNT(DISTINCT registrations.user_id)');
                 }
             ])
             ->whereHas('trainings', function ($query) {
