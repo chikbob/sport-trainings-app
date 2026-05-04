@@ -31,9 +31,18 @@ mkdir -p \
   /etc/nginx/conf.d \
   /app/bootstrap/cache \
   /app/storage/logs \
+  /app/storage/framework/cache/data \
   /app/storage/framework/cache \
   /app/storage/framework/sessions \
   /app/storage/framework/views
+
+chown -R www-data:www-data \
+  /app/bootstrap/cache \
+  /app/storage
+
+chmod -R ug+rwX \
+  /app/bootstrap/cache \
+  /app/storage
 
 APP_PORT="${PORT:-80}"
 sed \
