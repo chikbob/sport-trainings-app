@@ -1,5 +1,8 @@
 <?php
 
+$queueConnection = env('QUEUE_CONNECTION', 'sync');
+$redisConfigured = filled(env('REDIS_URL')) || filled(env('REDIS_HOST'));
+
 return [
 
     /*
@@ -13,7 +16,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    'default' => $queueConnection === 'redis' && ! $redisConfigured ? 'sync' : $queueConnection,
 
     /*
     |--------------------------------------------------------------------------

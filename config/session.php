@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Str;
 
+$sessionDriver = env('SESSION_DRIVER', 'file');
+$redisConfigured = filled(env('REDIS_URL')) || filled(env('REDIS_HOST'));
+
 return [
 
     /*
@@ -18,7 +21,7 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'file'),
+    'driver' => $sessionDriver === 'redis' && ! $redisConfigured ? 'file' : $sessionDriver,
 
     /*
     |--------------------------------------------------------------------------

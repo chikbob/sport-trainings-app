@@ -64,17 +64,19 @@ This avoids `cache:clear` against Redis during pre-deploy. Railway may start the
 - `APP_KEY=...`
 - `APP_URL=https://<your-domain-or-railway-domain>` or rely on `RAILWAY_PUBLIC_DOMAIN`
 - `DB_CONNECTION=pgsql` or `mysql` depending on your Railway database
-- `DATABASE_URL=...` if using Railway-provided connection string
+- `DATABASE_URL=...` if using Railway-provided connection string; otherwise leave it unset, not as an empty variable
 - `CACHE_DRIVER=redis`
 - `SESSION_DRIVER=redis`
 - `QUEUE_CONNECTION=redis`
 - `REDIS_URL=...`
 
-If Redis is not attached on Railway yet, use:
+If Redis is not attached on Railway yet, either remove the Redis variables or use:
 
 - `CACHE_DRIVER=file`
 - `SESSION_DRIVER=file`
 - `QUEUE_CONNECTION=database` or `sync`
+
+The app also falls back to safe non-Redis drivers when `CACHE_DRIVER`, `SESSION_DRIVER`, or `QUEUE_CONNECTION` are set to `redis` but neither `REDIS_URL` nor `REDIS_HOST` exists.
 
 ## Notes
 
