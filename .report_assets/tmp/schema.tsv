@@ -1,0 +1,72 @@
+coaches	id	bigint unsigned	NO	PRI
+coaches	user_id	bigint unsigned	NO	MUL
+coaches	bio	text	YES	
+coaches	phone	varchar(255)	YES	
+coaches	specialization	varchar(255)	YES	
+coaches	created_at	timestamp	YES	
+coaches	updated_at	timestamp	YES	
+failed_jobs	id	bigint unsigned	NO	PRI
+failed_jobs	uuid	varchar(255)	NO	UNI
+failed_jobs	connection	text	NO	
+failed_jobs	queue	text	NO	
+failed_jobs	payload	longtext	NO	
+failed_jobs	exception	longtext	NO	
+failed_jobs	failed_at	timestamp	NO	
+migrations	id	int unsigned	NO	PRI
+migrations	migration	varchar(255)	NO	
+migrations	batch	int	NO	
+participants	id	bigint unsigned	NO	PRI
+participants	user_id	bigint unsigned	NO	MUL
+participants	phone	varchar(255)	YES	
+participants	date_of_birth	date	YES	
+participants	emergency_contact	varchar(255)	YES	
+participants	created_at	timestamp	YES	
+participants	updated_at	timestamp	YES	
+password_reset_tokens	email	varchar(255)	NO	PRI
+password_reset_tokens	token	varchar(255)	NO	
+password_reset_tokens	created_at	timestamp	YES	
+personal_access_tokens	id	bigint unsigned	NO	PRI
+personal_access_tokens	tokenable_type	varchar(255)	NO	MUL
+personal_access_tokens	tokenable_id	bigint unsigned	NO	
+personal_access_tokens	name	varchar(255)	NO	
+personal_access_tokens	token	varchar(64)	NO	UNI
+personal_access_tokens	abilities	text	YES	
+personal_access_tokens	last_used_at	timestamp	YES	
+personal_access_tokens	expires_at	timestamp	YES	
+personal_access_tokens	created_at	timestamp	YES	
+personal_access_tokens	updated_at	timestamp	YES	
+registrations	id	bigint unsigned	NO	PRI
+registrations	user_id	bigint unsigned	NO	MUL
+registrations	training_id	bigint unsigned	NO	MUL
+registrations	status	enum('pending','approved','cancelled','rejected','attended','no_show')	NO	
+registrations	created_at	timestamp	YES	
+registrations	updated_at	timestamp	YES	
+sports	id	bigint unsigned	NO	PRI
+sports	name	varchar(255)	NO	
+sports	description	text	YES	
+sports	location	varchar(255)	YES	
+sports	created_at	timestamp	YES	
+sports	updated_at	timestamp	YES	
+sports	coach_id	bigint unsigned	YES	MUL
+trainings	id	bigint unsigned	NO	PRI
+trainings	sport_id	bigint unsigned	NO	MUL
+trainings	date	date	NO	
+trainings	time	time	NO	
+trainings	place	varchar(255)	YES	
+trainings	notes	varchar(255)	YES	
+trainings	is_cancelled	tinyint(1)	NO	
+trainings	is_completed	tinyint(1)	NO	
+trainings	completed_at	timestamp	YES	
+trainings	cancelled_at	timestamp	YES	
+trainings	created_at	timestamp	YES	
+trainings	updated_at	timestamp	YES	
+users	id	bigint unsigned	NO	PRI
+users	name	varchar(255)	NO	
+users	email	varchar(255)	NO	UNI
+users	email_verified_at	timestamp	YES	
+users	password	varchar(255)	NO	
+users	role	enum('user','admin','coach')	NO	
+users	remember_token	varchar(100)	YES	
+users	created_at	timestamp	YES	
+users	updated_at	timestamp	YES	
+users	deleted_at	timestamp	YES	

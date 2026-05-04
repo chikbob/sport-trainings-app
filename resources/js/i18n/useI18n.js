@@ -5,7 +5,12 @@ import en from "./en"
 
 const messages = { ru, uk, en }
 
-export const currentLang = ref(localStorage.getItem("lang") || "ru")
+const normalizeLang = (lang) => {
+    if (lang === "ru") return "uk"
+    return messages[lang] ? lang : "uk"
+}
+
+export const currentLang = ref(normalizeLang(localStorage.getItem("lang")))
 
 const syncLang = (lang) => {
     if (typeof document !== "undefined") {
@@ -28,16 +33,27 @@ export function useI18n() {
     }
 
     const setLang = (lang) => {
-        if (!messages[lang]) return
-        currentLang.value = lang
-        localStorage.setItem("lang", lang)
-        syncLang(lang)
+        const normalizedLang = normalizeLang(lang)
+
+        if (!messages[normalizedLang]) return
+
+        currentLang.value = normalizedLang
+        localStorage.setItem("lang", normalizedLang)
+        syncLang(normalizedLang)
     }
 
     watch(currentLang, (lang) => {
-        if (!messages[lang]) return
-        localStorage.setItem("lang", lang)
-        syncLang(lang)
+        const normalizedLang = normalizeLang(lang)
+
+        if (!messages[normalizedLang]) return
+
+        if (currentLang.value !== normalizedLang) {
+            currentLang.value = normalizedLang
+            return
+        }
+
+        localStorage.setItem("lang", normalizedLang)
+        syncLang(normalizedLang)
     })
 
     return {

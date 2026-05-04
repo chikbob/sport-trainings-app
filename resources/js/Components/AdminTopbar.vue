@@ -11,7 +11,7 @@
                     class="topbar__lang-select"
                     v-model="currentLang"
                 >
-                    <option value="ru">{{ t('admin.language.ru') }}</option>
+                    <!-- <option value="ru">{{ t('admin.language.ru') }}</option> -->
                     <option value="uk">{{ t('admin.language.uk') }}</option>
                     <option value="en">{{ t('admin.language.en') }}</option>
                 </select>

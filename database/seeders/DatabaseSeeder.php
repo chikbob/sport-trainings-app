@@ -111,7 +111,7 @@ class DatabaseSeeder extends Seeder
         // 5. Тестовый пользователь для демонстрации
         $demoUser = User::create([
             'name' => 'Demo User',
-            'email' => 'test@yandex.ru',
+            'email' => 'test@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'user',
         ]);
@@ -119,7 +119,7 @@ class DatabaseSeeder extends Seeder
         // Тестовый тренер
         $demoCoachUser = User::create([
             'name' => 'Demo Coach',
-            'email' => 'coach@yandex.ru',
+            'email' => 'coach@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'coach',
         ]);

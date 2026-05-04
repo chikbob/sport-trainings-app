@@ -5,7 +5,7 @@ import { currentLang } from '../i18n/useI18n'
 
 export default {
     install(app) {
-        const getLocale = () => currentLang.value || 'ru'
+        const getLocale = () => currentLang.value || 'uk'
 
         app.config.globalProperties.$formatDate = (d) => formatDate(d, getLocale())
         app.config.globalProperties.$formatTime = (t) => formatTime(t)

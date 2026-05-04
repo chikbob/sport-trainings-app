@@ -11,7 +11,8 @@ class SetLocale
     public function handle(Request $request, Closure $next)
     {
         $lang = $request->cookie('lang') ?? $request->header('X-Locale');
-        if (in_array($lang, ['ru', 'uk', 'en'], true)) {
+        // if (in_array($lang, ['ru', 'uk', 'en'], true)) {
+        if (in_array($lang, ['uk', 'en'], true)) {
             App::setLocale($lang);
         }
 
