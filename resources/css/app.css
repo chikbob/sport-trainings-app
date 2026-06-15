@@ -499,6 +499,31 @@ img {
     color: var(--text);
 }
 
+.ui-table__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+}
+
+.ui-table__sort-indicator {
+    min-width: 38px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ui-table__sort-indicator.is-active {
+    color: var(--primary-strong);
+}
+
 .ui-table td {
     color: #203246;
 }
@@ -766,8 +791,18 @@ img {
 }
 
 .ui-table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
     margin-top: 6px;
     margin-bottom: 18px;
+}
+
+.ui-table-toolbar__meta {
+    color: var(--text-muted);
+    font-size: 14px;
 }
 
 .ui-table-pagination {

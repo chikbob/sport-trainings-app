@@ -182,6 +182,11 @@ export default {
             delete: "Delete",
             confirmDelete: "Are you sure?",
             notSpecified: "—",
+            report: "PDF / Print",
+            reportSummary: "Rows in report",
+            printedAt: "Generated at",
+            sortAsc: "ASC",
+            sortDesc: "DESC",
         },
         sidebar: {
             dashboard: "Dashboard",
@@ -235,6 +240,13 @@ export default {
             delete: "Delete",
             confirmDelete: "Delete user?",
             notFound: "No users found",
+        },
+        reports: {
+            users: "Users report",
+            sports: "Sports report",
+            trainings: "Trainings report",
+            registrations: "Registrations report",
+            coaches: "Coaches report",
         },
         sports: {
             title: "Sports",

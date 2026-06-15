@@ -12,20 +12,29 @@
             </div>
         </AppCard>
 
+        <div class="ui-table-toolbar">
+            <div class="ui-table-toolbar__meta">
+                {{ t('admin.common.reportSummary') }}: {{ sortedCoaches.length }}
+            </div>
+            <AppButton type="button" variant="secondary" @click="printReport">
+                {{ t('admin.common.report') }}
+            </AppButton>
+        </div>
+
         <div class="ui-table-card">
             <div class="ui-table-wrap">
                 <table class="ui-table">
                     <thead>
                     <tr>
-                        <th>{{ t('admin.common.id') }}</th>
-                        <th>{{ t('admin.coaches.userName') }}</th>
-                        <th>{{ t('admin.forms.phone') }}</th>
-                        <th>{{ t('admin.forms.specialization') }}</th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('id')">{{ t('admin.common.id') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('id') }">{{ sortIndicator('id') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('userName')">{{ t('admin.coaches.userName') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('userName') }">{{ sortIndicator('userName') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('phone')">{{ t('admin.forms.phone') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('phone') }">{{ sortIndicator('phone') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('specialization')">{{ t('admin.forms.specialization') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('specialization') }">{{ sortIndicator('specialization') }}</span></button></th>
                         <th>{{ t('admin.common.actions') }}</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="coach in coaches.data" :key="coach.id">
+                    <tr v-for="coach in sortedCoaches" :key="coach.id">
                         <td>{{ coach.id }}</td>
                         <td>{{ coach.user?.name || t('admin.common.notSpecified') }}</td>
                         <td>{{ coach.phone || t('admin.common.notSpecified') }}</td>
@@ -47,7 +56,7 @@
         </div>
 
         <EmptyState
-            v-if="coaches.data.length === 0"
+            v-if="sortedCoaches.length === 0"
             :title="t('admin.coaches.title')"
             :description="t('admin.users.search')"
         />
@@ -57,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
@@ -67,7 +76,9 @@ import AppCard from '@/Components/AppCard.vue'
 import AppInput from '@/Components/AppInput.vue'
 import EmptyState from '@/Components/EmptyState.vue'
 import PageHeader from '@/Components/PageHeader.vue'
+import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
+import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({
     coaches: Object,
@@ -76,6 +87,20 @@ const props = defineProps({
 
 const { t } = useI18n()
 const search = ref(props.filters?.search || '')
+const coachesArray = computed(() => Array.isArray(props.coaches?.data) ? props.coaches.data : [])
+
+const {
+    sortDirection,
+    sortedRows: sortedCoaches,
+    setSort,
+    isSortedBy,
+} = useSortableTable(coachesArray, {
+    initialKey: 'id',
+    initialDirection: 'desc',
+    accessors: {
+        userName: (coach) => coach.user?.name || '',
+    },
+})
 
 watch(search, () => {
     router.get(route('admin.coaches.index'), { search: search.value, page: 1 }, { preserveState: true, replace: true })
@@ -84,5 +109,31 @@ watch(search, () => {
 const destroy = (id) => {
     if (!confirm(t('admin.common.confirmDelete'))) return
     router.delete(`/admin/coaches/${id}`)
+}
+
+const sortIndicator = (key) => {
+    if (!isSortedBy(key)) return ''
+    return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
+}
+
+const printReport = () => {
+    printTableReport({
+        title: t('admin.reports.coaches'),
+        columns: [
+            t('admin.common.id'),
+            t('admin.coaches.userName'),
+            t('admin.forms.phone'),
+            t('admin.forms.specialization'),
+        ],
+        rows: sortedCoaches.value.map((coach) => [
+            coach.id,
+            coach.user?.name || t('admin.common.notSpecified'),
+            coach.phone || t('admin.common.notSpecified'),
+            coach.specialization || t('admin.common.notSpecified'),
+        ]),
+        summary: `${t('admin.common.reportSummary')}: ${sortedCoaches.value.length}`,
+        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
+        emptyText: t('admin.coaches.title'),
+    })
 }
 </script>

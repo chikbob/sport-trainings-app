@@ -18,21 +18,30 @@
             </div>
         </AppCard>
 
+        <div class="ui-table-toolbar">
+            <div class="ui-table-toolbar__meta">
+                {{ t('admin.common.reportSummary') }}: {{ sortedUsers.length }}
+            </div>
+            <AppButton type="button" variant="secondary" @click="printReport">
+                {{ t('admin.common.report') }}
+            </AppButton>
+        </div>
+
         <div class="ui-table-card">
             <div class="ui-table-wrap">
                 <table class="ui-table">
                     <thead>
                     <tr>
-                        <th>{{ t('admin.common.id') }}</th>
-                        <th>{{ t('admin.users.name') }}</th>
-                        <th>{{ t('admin.forms.email') }}</th>
-                        <th>{{ t('admin.forms.phone') }}</th>
-                        <th>{{ t('admin.users.role') }}</th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('id')">{{ t('admin.common.id') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('id') }">{{ sortIndicator('id') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('name')">{{ t('admin.users.name') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('name') }">{{ sortIndicator('name') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('email')">{{ t('admin.forms.email') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('email') }">{{ sortIndicator('email') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('phone')">{{ t('admin.forms.phone') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('phone') }">{{ sortIndicator('phone') }}</span></button></th>
+                        <th><button class="ui-table__sort" type="button" @click="setSort('role')">{{ t('admin.users.role') }} <span class="ui-table__sort-indicator" :class="{ 'is-active': isSortedBy('role') }">{{ sortIndicator('role') }}</span></button></th>
                         <th>{{ t('admin.common.actions') }}</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="user in filteredUsers" :key="user.id">
+                    <tr v-for="user in sortedUsers" :key="user.id">
                         <td>{{ user.id }}</td>
                         <td>{{ user.name }}</td>
                         <td>{{ user.email }}</td>
@@ -55,7 +64,7 @@
         </div>
 
         <EmptyState
-            v-if="filteredUsers.length === 0"
+            v-if="sortedUsers.length === 0"
             :title="t('admin.users.notFound')"
             :description="t('admin.users.title')"
         />
@@ -76,7 +85,9 @@ import AppInput from '@/Components/AppInput.vue'
 import EmptyState from '@/Components/EmptyState.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
+import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
+import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({
     users: Object,
@@ -95,8 +106,17 @@ const filteredUsers = computed(() => usersArray.value
         const matchesRole = !roleFilter.value || user.role === roleFilter.value
 
         return matchesSearch && matchesRole
-    })
-    .sort((a, b) => b.id - a.id))
+    }))
+
+const {
+    sortDirection,
+    sortedRows: sortedUsers,
+    setSort,
+    isSortedBy,
+} = useSortableTable(filteredUsers, {
+    initialKey: 'id',
+    initialDirection: 'desc',
+})
 
 const changePage = (page) => {
     router.get(route('admin.users.index'), {
@@ -114,5 +134,33 @@ watch([search, roleFilter], () => changePage(1))
 const destroy = (id) => {
     if (!confirm(t('admin.users.confirmDelete'))) return
     router.delete(route('admin.users.destroy', id))
+}
+
+const sortIndicator = (key) => {
+    if (!isSortedBy(key)) return ''
+    return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
+}
+
+const printReport = () => {
+    printTableReport({
+        title: t('admin.reports.users'),
+        columns: [
+            t('admin.common.id'),
+            t('admin.users.name'),
+            t('admin.forms.email'),
+            t('admin.forms.phone'),
+            t('admin.users.role'),
+        ],
+        rows: sortedUsers.value.map((user) => [
+            user.id,
+            user.name,
+            user.email,
+            user.phone || t('admin.common.notSpecified'),
+            t(`admin.roles.${user.role}`),
+        ]),
+        summary: `${t('admin.common.reportSummary')}: ${sortedUsers.value.length}`,
+        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
+        emptyText: t('admin.users.notFound'),
+    })
 }
 </script>

@@ -182,6 +182,11 @@ export default {
             delete: "Удалить",
             confirmDelete: "Вы уверены?",
             notSpecified: "—",
+            report: "PDF / печать",
+            reportSummary: "Строк в отчете",
+            printedAt: "Сформировано",
+            sortAsc: "ASC",
+            sortDesc: "DESC",
         },
         sidebar: {
             dashboard: "Дашборд",
@@ -235,6 +240,13 @@ export default {
             delete: "Удалить",
             confirmDelete: "Удалить пользователя?",
             notFound: "Пользователи не найдены",
+        },
+        reports: {
+            users: "Отчет по пользователям",
+            sports: "Отчет по секциям",
+            trainings: "Отчет по тренировкам",
+            registrations: "Отчет по регистрациям",
+            coaches: "Отчет по тренерам",
         },
         sports: {
             title: "Секции",
