@@ -19,9 +19,9 @@
 
         <div class="ui-table-toolbar">
             <div class="ui-table-toolbar__meta">
-                {{ t('admin.common.reportSummary') }}: {{ sortedRegistrations.length }}
+                {{ t('admin.common.reportSummary') }}: {{ props.registrations.total ?? sortedRegistrations.length }}
             </div>
-            <AppButton type="button" variant="secondary" @click="printReport">
+            <AppButton type="button" variant="secondary" @click="downloadReport">
                 {{ t('admin.common.report') }}
             </AppButton>
         </div>
@@ -83,7 +83,6 @@ import PageHeader from '@/Components/PageHeader.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
 import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
-import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({
     registrations: Object,
@@ -126,28 +125,15 @@ const sortIndicator = (key) => {
     return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
 }
 
-const printReport = () => {
-    printTableReport({
-        title: t('admin.reports.registrations'),
-        columns: [
-            t('admin.common.id'),
-            t('admin.registrations.user'),
-            t('admin.registrations.sport'),
-            t('admin.registrations.training'),
-            t('admin.registrations.status'),
-            t('admin.registrations.createdAt'),
-        ],
-        rows: sortedRegistrations.value.map((registration) => [
-            registration.id,
-            registration.user?.name || t('admin.common.notSpecified'),
-            registration.training?.sport?.name || t('admin.common.notSpecified'),
-            `${registration.training?.date ? new Date(registration.training.date).toLocaleDateString() : t('admin.common.notSpecified')} ${registration.training?.time || ''}`.trim(),
-            t(`admin.status.${registration.status}`),
-            registration.created_at ? new Date(registration.created_at).toLocaleDateString() : t('admin.common.notSpecified'),
-        ]),
-        summary: `${t('admin.common.reportSummary')}: ${sortedRegistrations.value.length}`,
-        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
-        emptyText: t('admin.registrations.empty'),
-    })
+const downloadReport = () => {
+    const sort = ['id', 'userName', 'sportName', 'trainingDate', 'status', 'created_at']
+        .find((key) => isSortedBy(key)) || 'created_at'
+
+    window.open(route('admin.reports.registrations', {
+        search: search.value,
+        status: statusFilter.value,
+        sort,
+        direction: sortDirection.value,
+    }), '_blank', 'noopener')
 }
 </script>

@@ -20,9 +20,9 @@
 
         <div class="ui-table-toolbar">
             <div class="ui-table-toolbar__meta">
-                {{ t('admin.common.reportSummary') }}: {{ sortedUsers.length }}
+                {{ t('admin.common.reportSummary') }}: {{ props.users.total ?? sortedUsers.length }}
             </div>
-            <AppButton type="button" variant="secondary" @click="printReport">
+            <AppButton type="button" variant="secondary" @click="downloadReport">
                 {{ t('admin.common.report') }}
             </AppButton>
         </div>
@@ -87,7 +87,6 @@ import PageHeader from '@/Components/PageHeader.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
 import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
-import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({
     users: Object,
@@ -141,26 +140,16 @@ const sortIndicator = (key) => {
     return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
 }
 
-const printReport = () => {
-    printTableReport({
-        title: t('admin.reports.users'),
-        columns: [
-            t('admin.common.id'),
-            t('admin.users.name'),
-            t('admin.forms.email'),
-            t('admin.forms.phone'),
-            t('admin.users.role'),
-        ],
-        rows: sortedUsers.value.map((user) => [
-            user.id,
-            user.name,
-            user.email,
-            user.phone || t('admin.common.notSpecified'),
-            t(`admin.roles.${user.role}`),
-        ]),
-        summary: `${t('admin.common.reportSummary')}: ${sortedUsers.value.length}`,
-        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
-        emptyText: t('admin.users.notFound'),
+const downloadReport = () => {
+    const url = route('admin.reports.users', {
+        search: search.value,
+        role: roleFilter.value,
+        sort: isSortedBy('id') || isSortedBy('name') || isSortedBy('email') || isSortedBy('phone') || isSortedBy('role')
+            ? ['id', 'name', 'email', 'phone', 'role'].find((key) => isSortedBy(key))
+            : 'id',
+        direction: sortDirection.value,
     })
+
+    window.open(url, '_blank', 'noopener')
 }
 </script>

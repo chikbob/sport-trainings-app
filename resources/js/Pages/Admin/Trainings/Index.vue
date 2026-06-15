@@ -14,9 +14,9 @@
 
         <div class="ui-table-toolbar">
             <div class="ui-table-toolbar__meta">
-                {{ t('admin.common.reportSummary') }}: {{ sortedTrainings.length }}
+                {{ t('admin.common.reportSummary') }}: {{ props.trainings.total ?? sortedTrainings.length }}
             </div>
-            <AppButton type="button" variant="secondary" @click="printReport">
+            <AppButton type="button" variant="secondary" @click="downloadReport">
                 {{ t('admin.common.report') }}
             </AppButton>
         </div>
@@ -85,7 +85,6 @@ import PageHeader from '@/Components/PageHeader.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
 import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
-import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({ trainings: Object, filters: Object })
 
@@ -127,30 +126,14 @@ const sortIndicator = (key) => {
     return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
 }
 
-const printReport = () => {
-    printTableReport({
-        title: t('admin.reports.trainings'),
-        columns: [
-            t('admin.common.id'),
-            t('admin.sports.title'),
-            t('admin.forms.date'),
-            t('admin.forms.time'),
-            t('admin.forms.place'),
-            t('admin.trainings.notes'),
-            t('coach.status'),
-        ],
-        rows: sortedTrainings.value.map((training) => [
-            training.id,
-            training.sport?.name || t('admin.common.notSpecified'),
-            training.date ? new Date(training.date).toLocaleDateString() : t('admin.common.notSpecified'),
-            training.time || t('admin.common.notSpecified'),
-            training.place || t('admin.common.notSpecified'),
-            training.notes || t('admin.common.notSpecified'),
-            t(`common.trainingStatus.${trainingStatus(training)}`),
-        ]),
-        summary: `${t('admin.common.reportSummary')}: ${sortedTrainings.value.length}`,
-        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
-        emptyText: t('admin.trainings.title'),
-    })
+const downloadReport = () => {
+    const sort = ['id', 'sportName', 'date', 'time', 'place', 'notes', 'status']
+        .find((key) => isSortedBy(key)) || 'id'
+
+    window.open(route('admin.reports.trainings', {
+        search: search.value,
+        sort,
+        direction: sortDirection.value,
+    }), '_blank', 'noopener')
 }
 </script>

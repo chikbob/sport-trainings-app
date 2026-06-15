@@ -14,9 +14,9 @@
 
         <div class="ui-table-toolbar">
             <div class="ui-table-toolbar__meta">
-                {{ t('admin.common.reportSummary') }}: {{ sortedSports.length }}
+                {{ t('admin.common.reportSummary') }}: {{ props.sports.total ?? sortedSports.length }}
             </div>
-            <AppButton type="button" variant="secondary" @click="printReport">
+            <AppButton type="button" variant="secondary" @click="downloadReport">
                 {{ t('admin.common.report') }}
             </AppButton>
         </div>
@@ -80,7 +80,6 @@ import EmptyState from '@/Components/EmptyState.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
-import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({ sports: Object, filters: Object })
 
@@ -115,26 +114,14 @@ const sortIndicator = (key) => {
     return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
 }
 
-const printReport = () => {
-    printTableReport({
-        title: t('admin.reports.sports'),
-        columns: [
-            t('admin.common.id'),
-            t('admin.sports.name'),
-            t('admin.forms.location'),
-            t('admin.sports.trainer'),
-            t('admin.forms.description'),
-        ],
-        rows: sortedSports.value.map((sport) => [
-            sport.id,
-            sport.name,
-            sport.location || t('admin.common.notSpecified'),
-            sport.coach?.user?.name || t('admin.common.notSpecified'),
-            sport.description || t('admin.common.notSpecified'),
-        ]),
-        summary: `${t('admin.common.reportSummary')}: ${sortedSports.value.length}`,
-        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
-        emptyText: t('admin.sports.title'),
-    })
+const downloadReport = () => {
+    const sort = ['id', 'name', 'location', 'coachName', 'description']
+        .find((key) => isSortedBy(key)) || 'id'
+
+    window.open(route('admin.reports.sports', {
+        search: search.value,
+        sort,
+        direction: sortDirection.value,
+    }), '_blank', 'noopener')
 }
 </script>

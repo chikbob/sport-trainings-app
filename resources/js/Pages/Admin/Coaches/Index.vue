@@ -14,9 +14,9 @@
 
         <div class="ui-table-toolbar">
             <div class="ui-table-toolbar__meta">
-                {{ t('admin.common.reportSummary') }}: {{ sortedCoaches.length }}
+                {{ t('admin.common.reportSummary') }}: {{ props.coaches.total ?? sortedCoaches.length }}
             </div>
-            <AppButton type="button" variant="secondary" @click="printReport">
+            <AppButton type="button" variant="secondary" @click="downloadReport">
                 {{ t('admin.common.report') }}
             </AppButton>
         </div>
@@ -78,7 +78,6 @@ import EmptyState from '@/Components/EmptyState.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import { useSortableTable } from '@/composables/useSortableTable'
 import { useI18n } from '@/i18n/useI18n'
-import { printTableReport } from '@/utils/printTableReport'
 
 const props = defineProps({
     coaches: Object,
@@ -116,24 +115,14 @@ const sortIndicator = (key) => {
     return sortDirection.value === 'asc' ? t('admin.common.sortAsc') : t('admin.common.sortDesc')
 }
 
-const printReport = () => {
-    printTableReport({
-        title: t('admin.reports.coaches'),
-        columns: [
-            t('admin.common.id'),
-            t('admin.coaches.userName'),
-            t('admin.forms.phone'),
-            t('admin.forms.specialization'),
-        ],
-        rows: sortedCoaches.value.map((coach) => [
-            coach.id,
-            coach.user?.name || t('admin.common.notSpecified'),
-            coach.phone || t('admin.common.notSpecified'),
-            coach.specialization || t('admin.common.notSpecified'),
-        ]),
-        summary: `${t('admin.common.reportSummary')}: ${sortedCoaches.value.length}`,
-        printedAt: `${t('admin.common.printedAt')}: ${new Date().toLocaleString()}`,
-        emptyText: t('admin.coaches.title'),
-    })
+const downloadReport = () => {
+    const sort = ['id', 'userName', 'phone', 'specialization']
+        .find((key) => isSortedBy(key)) || 'id'
+
+    window.open(route('admin.reports.coaches', {
+        search: search.value,
+        sort,
+        direction: sortDirection.value,
+    }), '_blank', 'noopener')
 }
 </script>

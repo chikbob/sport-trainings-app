@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminCoachController;
 use App\Http\Controllers\Admin\AdminRegistrationController;
+use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\SportController;
@@ -156,6 +157,15 @@ Route::middleware(['auth', 'admin'])
 
         Route::resource('registrations', AdminRegistrationController::class)
             ->only(['index', 'edit', 'update']);
+
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/dashboard', [AdminReportController::class, 'dashboard'])->name('dashboard');
+            Route::get('/users', [AdminReportController::class, 'users'])->name('users');
+            Route::get('/sports', [AdminReportController::class, 'sports'])->name('sports');
+            Route::get('/trainings', [AdminReportController::class, 'trainings'])->name('trainings');
+            Route::get('/coaches', [AdminReportController::class, 'coaches'])->name('coaches');
+            Route::get('/registrations', [AdminReportController::class, 'registrations'])->name('registrations');
+        });
     });
 
 //

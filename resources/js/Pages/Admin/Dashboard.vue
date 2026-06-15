@@ -1,6 +1,12 @@
 <template>
     <AdminLayout>
-        <PageHeader :title="t('admin.dashboard.title')" :description="t('admin.header.title')" />
+        <PageHeader :title="t('admin.dashboard.title')" :description="t('admin.header.title')">
+            <template #actions>
+                <AppButton type="button" variant="secondary" @click="downloadReport">
+                    {{ t('admin.common.report') }}
+                </AppButton>
+            </template>
+        </PageHeader>
 
         <div class="ui-kpi-grid">
             <StatCard :label="t('admin.stats.users')" :value="safeStats.users" />
@@ -70,11 +76,13 @@
 import { computed } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import AppCard from '@/Components/AppCard.vue'
+import AppButton from '@/Components/AppButton.vue'
 import EmptyState from '@/Components/EmptyState.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import StatCard from '@/Components/StatCard.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
 import { useI18n } from '@/i18n/useI18n'
+import { route } from 'ziggy-js'
 
 const props = defineProps({
     stats: Object,
@@ -107,5 +115,9 @@ function trainingStatus(training) {
     if (training.is_cancelled) return 'cancelled'
     if (training.is_completed) return 'completed'
     return training.date > new Date().toISOString().slice(0, 10) ? 'planned' : 'active'
+}
+
+function downloadReport() {
+    window.open(route('admin.reports.dashboard'), '_blank', 'noopener')
 }
 </script>
