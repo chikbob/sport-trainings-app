@@ -1,27 +1,43 @@
 <template>
-    <nav class="pagination" v-if="links && links.length > 1">
-        <Link
-            v-for="(link, i) in links"
-            :key="i"
-            class="pagination__link"
-            :class="{ 'pagination__link--active': link.active, 'pagination__link--disabled': !link.url }"
-            :href="link.url || ''"
-            preserve-scroll
-            preserve-state
-            v-html="labelFor(link.label)"
-        />
+    <nav class="pagination" v-if="paginationLinks.length > 1" aria-label="Admin pagination">
+        <template v-for="(link, index) in paginationLinks" :key="`${index}-${link.label}`">
+            <span
+                v-if="!link.url"
+                class="pagination__link pagination__link--disabled"
+                v-html="link.displayLabel"
+            />
+
+            <Link
+                v-else
+                class="pagination__link"
+                :class="{ 'pagination__link--active': link.active }"
+                :href="link.url"
+                preserve-scroll
+                preserve-state
+                v-html="link.displayLabel"
+            />
+        </template>
     </nav>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import { useI18n } from '@/i18n/useI18n'
 
-defineProps({
-    links: Array,
+const props = defineProps({
+    links: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const { t } = useI18n()
+
+const paginationLinks = computed(() => props.links.map((link) => ({
+    ...link,
+    displayLabel: labelFor(link.label),
+})))
 
 const labelFor = (label) => {
     if (!label) return ''
@@ -46,6 +62,10 @@ const labelFor = (label) => {
 }
 
 .pagination__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
