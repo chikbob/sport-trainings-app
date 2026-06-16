@@ -34,8 +34,22 @@ const props = defineProps({
 
 const { t } = useI18n()
 
+const normalizeUrl = (url) => {
+    if (!url) return null
+
+    try {
+        const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
+        const normalized = new URL(url, base)
+
+        return `${normalized.pathname}${normalized.search}${normalized.hash}`
+    } catch {
+        return url
+    }
+}
+
 const paginationLinks = computed(() => props.links.map((link) => ({
     ...link,
+    url: normalizeUrl(link.url),
     displayLabel: labelFor(link.label),
 })))
 
